@@ -9,13 +9,13 @@ import { useVolunteerStore } from '@/features/volunteers/store/volunteerStore';
 import { VolunteerCard } from '@/components/volunteers/VolunteerCard';
 import { VolunteerStatusBadge } from '@/components/volunteers/VolunteerStatusBadge';
 import { LanguageBadge, SkillBadge } from '@/components/volunteers/LanguageSkillBadges';
-import { motion } from 'framer-motion';
+
 
 export default function VolunteerCommandCenterPage() {
   const {
     volunteers,
     selectedVolunteerId,
-    assignments,
+
     missions,
     filters,
     selectVolunteer,
@@ -25,7 +25,7 @@ export default function VolunteerCommandCenterPage() {
     toggleSkillFilter,
     toggleCertificationFilter,
     assignMission,
-    updateMissionProgress,
+
     completeMission,
   } = useVolunteerStore();
 
@@ -98,12 +98,12 @@ export default function VolunteerCommandCenterPage() {
 
       {/* Top KPI Row */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <KpiCard title="Total Volunteers" value={String(totalVolunteers)} icon="Users" />
-        <KpiCard title="Available" value={String(availableVolunteers)} icon="CheckCircle" />
-        <KpiCard title="Assigned" value={String(assignedVolunteers)} icon="UserCheck" />
-        <KpiCard title="On Break" value={String(onBreakVolunteers)} icon="Coffee" />
-        <KpiCard title="Avg Response Time" value={averageResponseTime} icon="Clock" />
-        <KpiCard title="Languages Supported" value={languagesSupported} icon="Globe" />
+        <KpiCard label="Total Volunteers" value={String(totalVolunteers)} iconName="Users" />
+        <KpiCard label="Available" value={String(availableVolunteers)} iconName="CheckCircle" />
+        <KpiCard label="Assigned" value={String(assignedVolunteers)} iconName="UserCheck" />
+        <KpiCard label="On Break" value={String(onBreakVolunteers)} iconName="Coffee" />
+        <KpiCard label="Avg Response Time" value={averageResponseTime} iconName="Clock" />
+        <KpiCard label="Languages Supported" value={languagesSupported} iconName="Globe" />
       </section>
 
       {/* Main layout */}
@@ -118,7 +118,7 @@ export default function VolunteerCommandCenterPage() {
           />
           <div className="flex flex-wrap gap-2">
             {/* Status filters */}
-            {['available', 'assigned', 'on-break', 'unavailable'] as const.map(st => (
+            {(['available', 'assigned', 'on-break', 'unavailable'] as const).map(st => (
               <Button
                 key={st}
                 variant={filters.status.includes(st) ? 'default' : 'outline'}
@@ -240,7 +240,7 @@ export default function VolunteerCommandCenterPage() {
             <CardContent className="space-y-2 text-sm">
               {selectedMission ? (
                 <>
-                  <p><strong>Assigned Incident:</strong> {selectedMission.incidentId}</p>
+                  <p><strong>Assigned Mission:</strong> {selectedMission.id}</p>
                   <p><strong>Progress:</strong> {selectedMission.progress}%</p>
                   <p><strong>ETA:</strong> {selectedMission.eta}</p>
                   <p><strong>Checklist:</strong></p>
@@ -267,12 +267,12 @@ export default function VolunteerCommandCenterPage() {
           <CardContent>
             <Timeline
               events={[
-                { time: '08:00', description: 'Assignment Accepted' },
-                { time: '08:10', description: 'Travelling' },
-                { time: '08:25', description: 'Arrived' },
-                { time: '08:30', description: 'Task Started' },
-                { time: '09:00', description: 'Task Completed' },
-                { time: '09:10', description: 'Available Again' },
+                { id: 'vt-1', title: 'Assignment Accepted', description: 'Volunteer accepted the mission',  timestamp: '08:00', category: 'volunteer', severity: 'info'    },
+                { id: 'vt-2', title: 'Travelling',          description: 'Volunteer en route',              timestamp: '08:10', category: 'volunteer', severity: 'info'    },
+                { id: 'vt-3', title: 'Arrived',             description: 'Volunteer arrived at location',   timestamp: '08:25', category: 'volunteer', severity: 'primary' },
+                { id: 'vt-4', title: 'Task Started',        description: 'Volunteer began the task',        timestamp: '08:30', category: 'volunteer', severity: 'warning' },
+                { id: 'vt-5', title: 'Task Completed',      description: 'Task successfully completed',     timestamp: '09:00', category: 'volunteer', severity: 'success' },
+                { id: 'vt-6', title: 'Available Again',     description: 'Volunteer returned to standby',   timestamp: '09:10', category: 'volunteer', severity: 'success' },
               ]}
             />
           </CardContent>

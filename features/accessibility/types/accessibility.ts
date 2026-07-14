@@ -1,13 +1,25 @@
-export type RequestCategory =
-  | 'wheelchair'
-  | 'visual'
-  | 'hearing'
-  | 'senior'
-  | 'family'
-  | 'medical';
+export enum RequestCategory {
+  WHEELCHAIR = 'wheelchair',
+  VISUAL = 'visual',
+  HEARING = 'hearing',
+  SENIOR = 'senior',
+  FAMILY = 'family',
+  MEDICAL = 'medical',
+}
 
-export type RequestPriority = 'low' | 'medium' | 'high' | 'critical';
-export type RequestStatus = 'open' | 'in-progress' | 'completed' | 'escalated';
+export enum RequestPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical',
+}
+
+export enum RequestStatus {
+  OPEN = 'open',
+  IN_PROGRESS = 'in-progress',
+  COMPLETED = 'completed',
+  ESCALATED = 'escalated',
+}
 
 export interface AccessibilityRequest {
   id: string;

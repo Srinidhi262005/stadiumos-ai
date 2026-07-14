@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useDigitalTwinStore, SectorStatus } from '@/store/ui/digitalTwin';
 
 // Simple mapping of sector names to SVG path data (placeholder rectangles)
@@ -19,7 +19,7 @@ const sectorShapes: Record<string, string> = {
 };
 
 export const StadiumMap: React.FC = () => {
-  const { sectorStatus, selectSector, setSectorStatus } = useDigitalTwinStore();
+  const { sectorStatus, selectSector } = useDigitalTwinStore();
 
   const handleClick = (sector: string) => {
     selectSector(sector);

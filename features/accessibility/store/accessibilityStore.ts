@@ -1,6 +1,13 @@
+'use client';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { AccessibilityRequest, AccessibilityResource } from '@/features/accessibility/types/accessibility';
+import {
+  AccessibilityRequest,
+  AccessibilityResource,
+  RequestStatus,
+  RequestPriority,
+  RequestCategory,
+} from '@/features/accessibility/types/accessibility';
 
 export interface AccessibilityState {
   requests: AccessibilityRequest[];
@@ -8,16 +15,16 @@ export interface AccessibilityState {
   selectedRequestId: string | null;
   filters: {
     search: string;
-    priority: string[]; // low, medium, high, critical
-    category: string[]; // wheelchair, visual, etc.
-    status: string[]; // open, in-progress, completed, escalated
+    priority: RequestPriority[];
+    category: RequestCategory[];
+    status: RequestStatus[];
   };
   // actions
   selectRequest: (id: string) => void;
   setSearch: (term: string) => void;
-  togglePriority: (p: string) => void;
-  toggleCategory: (c: string) => void;
-  toggleStatus: (s: string) => void;
+  togglePriority: (p: RequestPriority) => void;
+  toggleCategory: (c: RequestCategory) => void;
+  toggleStatus: (s: RequestStatus) => void;
   assignVolunteer: (requestId: string, volunteerId: string) => void;
   changeRoute: (requestId: string) => void;
   markCompleted: (requestId: string) => void;
@@ -29,11 +36,11 @@ const mockRequests: AccessibilityRequest[] = [
   {
     id: 'AR-001',
     spectatorName: 'John Smith',
-    category: 'wheelchair',
-    priority: 'high',
+    category: RequestCategory.WHEELCHAIR,
+    priority: RequestPriority.HIGH,
     location: 'North Stand',
     assignedVolunteerId: undefined,
-    status: 'open',
+    status: RequestStatus.OPEN,
     need: 'Wheelchair assistance to seat',
     preferredLanguage: 'English',
     destination: 'Seat 12A',
@@ -42,11 +49,11 @@ const mockRequests: AccessibilityRequest[] = [
   {
     id: 'AR-002',
     spectatorName: 'Maria Garcia',
-    category: 'visual',
-    priority: 'medium',
+    category: RequestCategory.VISUAL,
+    priority: RequestPriority.MEDIUM,
     location: 'East Stand',
     assignedVolunteerId: 'V001',
-    status: 'in-progress',
+    status: RequestStatus.IN_PROGRESS,
     need: 'Guided escort to restroom',
     preferredLanguage: 'Spanish',
     destination: 'Restroom',
@@ -55,11 +62,11 @@ const mockRequests: AccessibilityRequest[] = [
   {
     id: 'AR-003',
     spectatorName: 'Li Wei',
-    category: 'senior',
-    priority: 'low',
+    category: RequestCategory.MEDICAL, // nearest enum member; SENIOR not defined
+    priority: RequestPriority.LOW,
     location: 'Food Court',
     assignedVolunteerId: undefined,
-    status: 'open',
+    status: RequestStatus.OPEN,
     need: 'Seat with easy access',
     preferredLanguage: 'Chinese',
     destination: 'Seat 34B',
@@ -76,38 +83,40 @@ const mockResources: AccessibilityResource[] = [
 ];
 
 export const useAccessibilityStore = create<AccessibilityState>()(
-  devtools((set, get) => ({
+  devtools((set) => ({
     requests: mockRequests,
     resources: mockResources,
     selectedRequestId: null,
     filters: { search: '', priority: [], category: [], status: [] },
     selectRequest: (id) => set({ selectedRequestId: id }),
-    setSearch: (term) => set(state => ({ filters: { ...state.filters, search: term } })),
+    setSearch: (term) => set((state) => ({ filters: { ...state.filters, search: term } })),
     togglePriority: (p) =>
-      set(state => {
+      set((state) => {
         const arr = state.filters.priority.includes(p)
-          ? state.filters.priority.filter(v => v !== p)
+          ? state.filters.priority.filter((v) => v !== p)
           : [...state.filters.priority, p];
         return { filters: { ...state.filters, priority: arr } };
       }),
     toggleCategory: (c) =>
-      set(state => {
+      set((state) => {
         const arr = state.filters.category.includes(c)
-          ? state.filters.category.filter(v => v !== c)
+          ? state.filters.category.filter((v) => v !== c)
           : [...state.filters.category, c];
         return { filters: { ...state.filters, category: arr } };
       }),
     toggleStatus: (s) =>
-      set(state => {
+      set((state) => {
         const arr = state.filters.status.includes(s)
-          ? state.filters.status.filter(v => v !== s)
+          ? state.filters.status.filter((v) => v !== s)
           : [...state.filters.status, s];
         return { filters: { ...state.filters, status: arr } };
       }),
     assignVolunteer: (requestId, volunteerId) =>
-      set(state => {
-        const requests = state.requests.map(r =>
-          r.id === requestId ? { ...r, assignedVolunteerId: volunteerId, status: 'in-progress' } : r
+      set((state) => {
+        const requests = state.requests.map((r) =>
+          r.id === requestId
+            ? { ...r, assignedVolunteerId: volunteerId, status: RequestStatus.IN_PROGRESS }
+            : r
         );
         return { requests };
       }),
@@ -115,16 +124,16 @@ export const useAccessibilityStore = create<AccessibilityState>()(
       console.log('Route changed for', requestId);
     },
     markCompleted: (requestId) =>
-      set(state => {
-        const requests = state.requests.map(r =>
-          r.id === requestId ? { ...r, status: 'completed' } : r
+      set((state) => {
+        const requests = state.requests.map((r) =>
+          r.id === requestId ? { ...r, status: RequestStatus.COMPLETED } : r
         );
         return { requests };
       }),
     escalatePriority: (requestId) =>
-      set(state => {
-        const requests = state.requests.map(r =>
-          r.id === requestId ? { ...r, priority: 'critical' } : r
+      set((state) => {
+        const requests = state.requests.map((r) =>
+          r.id === requestId ? { ...r, priority: RequestPriority.CRITICAL } : r
         );
         return { requests };
       }),

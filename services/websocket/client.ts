@@ -1,10 +1,18 @@
 import { ENV } from '../../config/environment';
 
+
+/** Generic shape for all WebSocket messages sent and received by StadiumOS. */
+export interface WebSocketMessage {
+  type: string;
+  payload?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export class WebSocketManager {
   private socket: WebSocket | null = null;
   private url: string;
   private reconnectInterval = 5000;
-  private listeners: Set<(data: any) => void> = new Set();
+  private listeners: Set<(data: WebSocketMessage) => void> = new Set();
   private reconnectTimer: NodeJS.Timeout | null = null;
 
   constructor(url: string = ENV.wsUrl) {
@@ -68,7 +76,7 @@ export class WebSocketManager {
     }
   }
 
-  subscribe(listener: (data: any) => void) {
+  subscribe(listener: (data: WebSocketMessage) => void) {
     this.listeners.add(listener);
     // Return unsubscribe function
     return () => {
@@ -76,7 +84,7 @@ export class WebSocketManager {
     };
   }
 
-  send(message: any) {
+  send(message: WebSocketMessage) {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(message));
     } else {

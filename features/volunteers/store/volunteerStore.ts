@@ -94,7 +94,7 @@ const mockMissions: Mission[] = [
 ];
 
 export const useVolunteerStore = create<VolunteerState>()(
-  devtools((set, get) => ({
+  devtools((set) => ({
     volunteers: mockVolunteers,
     selectedVolunteerId: null,
     assignments: [],
@@ -142,7 +142,7 @@ export const useVolunteerStore = create<VolunteerState>()(
           m.id === missionId ? { ...m, assignedVolunteerId: volunteerId, progress: 0 } : m
         );
         const volunteers = state.volunteers.map(v =>
-          v.id === volunteerId ? { ...v, status: 'assigned' } : v
+          v.id === volunteerId ? { ...v, status: 'assigned' as Volunteer['status'] } : v
         );
         const assignment: Assignment = {
           incidentId: missionId,
@@ -164,10 +164,10 @@ export const useVolunteerStore = create<VolunteerState>()(
           m.id === missionId ? { ...m, progress: 100 } : m
         );
         const assignments = state.assignments.map(a =>
-          a.incidentId === missionId ? { ...a, status: 'completed' } : a
+          a.incidentId === missionId ? { ...a, status: 'completed' as Assignment['status'] } : a
         );
         const volunteers = state.volunteers.map(v =>
-          v.id === missions.find(m => m.id === missionId)?.assignedVolunteerId ? { ...v, status: 'available' } : v
+          v.id === missions.find(m => m.id === missionId)?.assignedVolunteerId ? { ...v, status: 'available' as Volunteer['status'] } : v
         );
         return { missions, assignments, volunteers };
       }),

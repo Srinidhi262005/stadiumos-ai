@@ -1,3 +1,4 @@
+'use client';
 import React from "react";
 import PageHeader from "@/components/shared/PageHeader";
 import KpiCard from "@/components/cards/KpiCard";
@@ -72,29 +73,27 @@ export default function AICommandCenterPage() {
         {kpis.map((kpi) => (
           <KpiCard
             key={kpi.title}
-            title={kpi.title}
-            value={kpi.value}
-            unit={kpi.unit}
-            // Assuming KpiCard accepts an icon name string; otherwise it will ignore.
-            icon={kpi.icon as any}
+            label={kpi.title}
+            value={kpi.unit ? `${kpi.value} ${kpi.unit}` : kpi.value}
+            iconName={kpi.icon}
           />
         ))}
       </section>
 
       {/* Operational Timeline */}
       <section>
-        <MetricCard title="Operational Timeline" />
-        <Timeline events={timelineEvents} />
+        <MetricCard title="Operational Timeline" value="" />
+        <Timeline events={timelineEvents.map(event => ({ id: `${event.time}-${event.description}`, title: event.description, description: event.description, timestamp: event.time, category: 'system', severity: 'info' }))} />
       </section>
 
       {/* Risk Gauge */}
       <section>
-        <MetricCard title="Risk Score" value="2.3" unit="/10" />
+        <MetricCard title="Risk Score" value="2.3 /10" />
       </section>
 
       {/* Recent Notifications */}
       <section>
-        <MetricCard title="Recent Notifications" />
+        <MetricCard title="Recent Notifications" value="" />
         <ul className="list-disc pl-5 space-y-1">
           {notifications.map((note, i) => (
             <li key={i}>{note}</li>
@@ -104,7 +103,7 @@ export default function AICommandCenterPage() {
 
       {/* AI Command Console */}
       <section className="space-y-2">
-        <MetricCard title="AI Command Console" />
+        <MetricCard title="AI Command Console" value="" />
         <Input placeholder="Enter AI command…" className="bg-[#101827] text-white" />
         <Button disabled>Execute</Button>
       </section>

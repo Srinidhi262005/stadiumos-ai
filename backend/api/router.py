@@ -9,6 +9,7 @@ from .routers import (
     sustainability,
     reports,
     notifications,
+    ai,
 )
 
 api_router = APIRouter()
@@ -22,3 +23,4 @@ api_router.include_router(accessibility.router, prefix="/accessibility", tags=["
 api_router.include_router(sustainability.router, prefix="/sustainability", tags=["sustainability"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+api_router.include_router(ai.router, prefix="/ai", tags=["ai"])

@@ -1,9 +1,8 @@
+'use client';
 import React from 'react';
-import { motion } from 'framer-motion';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { KpiCard } from '@/components/cards/KpiCard';
 import { MetricCard } from '@/components/cards/MetricCard';
 import { Timeline } from '@/components/shared/Timeline';
@@ -34,7 +33,7 @@ export default function DigitalTwinPage() {
 
   const metrics = selectedSector ? sectorMetrics[selectedSector] : null;
 
-  const handleAction = (action: string) => {
+  const handleAction = () => {
     // mock state change: toggle critical status of selected sector for demo
     if (selectedSector) {
       const current = sectorStatus[selectedSector];
@@ -51,7 +50,7 @@ export default function DigitalTwinPage() {
       {/* Top KPI Row */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 my-4">
         {topKpis.map(k => (
-          <KpiCard key={k.title} title={k.title} value={k.value} unit={k.unit} icon={k.icon as any} />
+          <KpiCard key={k.title} label={k.title} value={k.unit ? `${k.value} ${k.unit}` : k.value} iconName={k.icon} />
         ))}
       </section>
 
@@ -115,8 +114,15 @@ export default function DigitalTwinPage() {
 
       {/* Bottom Timeline */}
       <section className="mt-6">
-        <MetricCard title="Live Operational Timeline" />
-        <Timeline events={bottomSteps.map(step => ({ time: step.time, description: step.label }))} />
+        <MetricCard title="Live Operational Timeline" value="" />
+        <Timeline events={bottomSteps.map(step => ({
+  id: `${step.time}-${step.label}`,
+  title: step.label,
+  description: step.label,
+  timestamp: step.time,
+  category: 'system',
+  severity: 'info'
+}))} />
       </section>
     </main>
   );

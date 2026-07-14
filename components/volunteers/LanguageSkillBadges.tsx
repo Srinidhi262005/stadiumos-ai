@@ -1,6 +1,5 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Volunteer } from '@/types/volunteers/volunteer';
 
 interface LanguageBadgeProps {
   language: string;

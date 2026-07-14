@@ -68,7 +68,7 @@ const mockIncidents: Incident[] = [
 ];
 
 export const useIncidentStore = create<IncidentState>()(
-  devtools((set, get) => ({
+  devtools((set) => ({
     incidents: mockIncidents,
     selectedIncidentId: null,
     filters: {

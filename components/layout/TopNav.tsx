@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Search, Menu, LogOut, Sparkles, AlertCircle, Info, ChevronDown } from 'lucide-react';
+import { Bell, Search, Menu, LogOut, Sparkles, Info, ChevronDown } from 'lucide-react';
 import { useUiStore } from '../../store/uiStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { useAuthStore } from '../../store/authStore';

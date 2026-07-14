@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/shared/PageHeader';
 import { KpiCard } from '@/components/cards/KpiCard';
@@ -7,8 +7,8 @@ import { IncidentCard } from '@/components/incidents/IncidentCard';
 import { useIncidentStore } from '@/store/ui/incidents';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
+
+
 
 // Top KPI static data
 const topKpis = [
@@ -66,7 +66,7 @@ export default function IncidentCommanderPage() {
       {/* Top KPI Row */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {topKpis.map(k => (
-          <KpiCard key={k.title} title={k.title} value={k.value} unit={k.unit} icon={k.icon as any} />
+          <KpiCard key={k.title} label={k.title} value={k.unit ? `${k.value} ${k.unit}` : k.value} iconName={k.icon} />
         ))}
       </section>
 
@@ -85,7 +85,7 @@ export default function IncidentCommanderPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {/* Severity filter buttons */}
-            {['low', 'medium', 'high', 'critical'] as const.map(sev => (
+            {(['low', 'medium', 'high', 'critical'] as const).map(sev => (
               <Button
                 key={sev}
                 variant={filters.severity.includes(sev) ? 'default' : 'outline'}
@@ -96,7 +96,7 @@ export default function IncidentCommanderPage() {
               </Button>
             ))}
             {/* Category filters */}
-            {['Security', 'Medical', 'Crowd'] as const.map(cat => (
+            {(['Security', 'Medical', 'Crowd'] as const).map(cat => (
               <Button
                 key={cat}
                 variant={filters.category.includes(cat) ? 'default' : 'outline'}
@@ -107,7 +107,7 @@ export default function IncidentCommanderPage() {
               </Button>
             ))}
             {/* Status filters */}
-            {['detected', 'in-progress', 'resolved', 'escalated'] as const.map(st => (
+            {(['detected', 'in-progress', 'resolved', 'escalated'] as const).map(st => (
               <Button
                 key={st}
                 variant={filters.status.includes(st) ? 'default' : 'outline'}
@@ -222,13 +222,13 @@ export default function IncidentCommanderPage() {
           <CardContent>
             <Timeline
               events={[
-                { time: '08:12', description: 'Detection' },
-                { time: '08:15', description: 'AI Analysis' },
-                { time: '08:20', description: 'Recommendation' },
-                { time: '08:25', description: 'Approval' },
-                { time: '08:30', description: 'Dispatch' },
-                { time: '08:45', description: 'Monitoring' },
-                { time: '09:00', description: 'Resolution' },
+                { id: 'evt-1', title: 'Detection',      description: 'Incident detected',            timestamp: '08:12', category: 'incident', severity: 'danger'  },
+                { id: 'evt-2', title: 'AI Analysis',    description: 'AI model analysis started',    timestamp: '08:15', category: 'ai',       severity: 'info'    },
+                { id: 'evt-3', title: 'Recommendation', description: 'AI recommendation generated',  timestamp: '08:20', category: 'ai',       severity: 'info'    },
+                { id: 'evt-4', title: 'Approval',       description: 'Response plan approved',       timestamp: '08:25', category: 'system',   severity: 'primary' },
+                { id: 'evt-5', title: 'Dispatch',       description: 'Resources dispatched',         timestamp: '08:30', category: 'incident', severity: 'warning' },
+                { id: 'evt-6', title: 'Monitoring',     description: 'Situation being monitored',    timestamp: '08:45', category: 'system',   severity: 'info'    },
+                { id: 'evt-7', title: 'Resolution',     description: 'Incident resolved',            timestamp: '09:00', category: 'incident', severity: 'success' },
               ]}
             />
           </CardContent>

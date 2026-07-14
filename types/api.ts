@@ -19,5 +19,5 @@ export interface QueryParams {
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
