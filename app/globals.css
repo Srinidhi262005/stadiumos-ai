@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-ai-accent: var(--ai-accent);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui;
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui;
+  
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* StadiumOS AI Dark Enterprise Color System */
+:root {
+  --background: #02050D;
+  --foreground: #F8FAFC;
+  --surface: #0B1220;
+  --card: #101827;
+  --card-foreground: #F8FAFC;
+  --popover: #0B1220;
+  --popover-foreground: #F8FAFC;
+  
+  --primary: #0061A4;
+  --primary-foreground: #F8FAFC;
+  --secondary: #162235;
+  --secondary-foreground: #94A3B8;
+  
+  --success: #00C853;
+  --success-foreground: #02050D;
+  --warning: #FFB300;
+  --warning-foreground: #02050D;
+  --danger: #E53935;
+  --danger-foreground: #F8FAFC;
+  --ai-accent: #00F2FE;
+  
+  --muted: #101827;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #E53935;
+  --destructive-foreground: #F8FAFC;
+  
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #0061A4;
+  --radius: 0.5rem;
+  
+  --sidebar: #0B1220;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #0061A4;
+  --sidebar-primary-foreground: #F8FAFC;
+  --sidebar-accent: #101827;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #0061A4;
+}
+
+/* Force dark class behavior to match root theme values */
+.dark {
+  --background: #02050D;
+  --foreground: #F8FAFC;
+  --surface: #0B1220;
+  --card: #101827;
+  --card-foreground: #F8FAFC;
+  --popover: #0B1220;
+  --popover-foreground: #F8FAFC;
+  
+  --primary: #0061A4;
+  --primary-foreground: #F8FAFC;
+  --secondary: #162235;
+  --secondary-foreground: #94A3B8;
+  
+  --success: #00C853;
+  --success-foreground: #02050D;
+  --warning: #FFB300;
+  --warning-foreground: #02050D;
+  --danger: #E53935;
+  --danger-foreground: #F8FAFC;
+  --ai-accent: #00F2FE;
+  
+  --muted: #101827;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #E53935;
+  --destructive-foreground: #F8FAFC;
+  
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #0061A4;
+  
+  --sidebar: #0B1220;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #0061A4;
+  --sidebar-primary-foreground: #F8FAFC;
+  --sidebar-accent: #101827;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #0061A4;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  /* Focus Rings configuration according to WCAG 2.2 AA standards */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+/* AI Neon Glowing Borders animation helper */
+.ai-glow-border {
+  position: relative;
+}
+.ai-glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(90deg, var(--primary), var(--ai-accent));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+.ai-glow-border:hover::before {
+  opacity: 0.8;
+}
+
+/* Premium Shimmer Loading Skeleton */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.shimmer-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-shimmer::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 2s infinite;
+  content: "";
+}
