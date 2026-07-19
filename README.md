@@ -2,6 +2,8 @@
 
 StadiumOS AI is a demo-ready operations command center for stadium event management. It combines a modern Next.js frontend with a FastAPI backend, real-time WebSocket support, JWT authentication, operational dashboards, incident command workflows, accessibility and volunteer coordination, and AI-powered decision support.
 
+> Built as part of the Hack2Skill hackathon: Virtual PromptWars.
+
 ## Table of Contents
 
 - [Project Overview](#project-overview)
