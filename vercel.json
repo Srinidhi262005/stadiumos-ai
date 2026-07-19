@@ -10,14 +10,14 @@
       "entrypoint": "main:app"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "service": "backend"
+      "source": "/api/(.*)",
+      "destination": { "service": "backend" }
     },
     {
-      "src": "/(.*)",
-      "service": "frontend"
+      "source": "/(.*)",
+      "destination": { "service": "frontend" }
     }
   ]
 }
