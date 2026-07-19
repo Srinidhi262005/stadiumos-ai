@@ -11,17 +11,17 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: list[str] = Field(default_factory=lambda: ["*"])
 
     # Database
-    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    DATABASE_URL: str = Field("sqlite:///./stadiumos.db", env="DATABASE_URL")
 
     # Security / JWT
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+    SECRET_KEY: str = Field("dev_secret_key", env="SECRET_KEY")
     ALGORITHM: str = Field("HS256", env="ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
 
     # External services
-    GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
-    SUPABASE_URL: AnyUrl = Field(..., env="SUPABASE_URL")
-    SUPABASE_ANON_KEY: str = Field(..., env="SUPABASE_ANON_KEY")
+    GEMINI_API_KEY: str = Field("", env="GEMINI_API_KEY")
+    SUPABASE_URL: AnyUrl = Field("https://example.com", env="SUPABASE_URL")
+    SUPABASE_ANON_KEY: str = Field("", env="SUPABASE_ANON_KEY")
 
     class Config:
         env_file = "backend/.env"
