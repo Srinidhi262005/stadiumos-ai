@@ -1,8 +1,26 @@
 # backend/main.py
 """App startup, database initialization, CORS settings, and route registrations."""
+import sys
+from pathlib import Path
 import asyncio
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+
+# Ensure the project root is on sys.path when Vercel places `main.py` at the
+# deployment root. This prevents `ModuleNotFoundError: No module named 'backend'`.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# Diagnostic output for runtime import troubleshooting
+try:
+    import os
+    import sys as _sys
+    from pathlib import Path as _P
+    print("DEBUG: __file__=", Path(__file__).resolve())
+    print("DEBUG: cwd=", _P.cwd())
+    print("DEBUG: listdir=", [p.name for p in _P('.').iterdir()])
+    print("DEBUG: sys.path=", _sys.path[:10])
+except Exception as _e:
+    print("DEBUG ERR:", _e)
 
 from backend.core.config import settings
 from backend.core.logging import logger
