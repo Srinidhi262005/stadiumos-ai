@@ -58,3 +58,14 @@ diff.txt
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local scratch / diagnostic scripts
+check_pw.py
+get_ids.py
+tmp_*.py
+tmp-*.py
+backend/verify_login.py
+test_crud.py
+test_e2e_login.py
+test_login.py
+test_realtime.py
