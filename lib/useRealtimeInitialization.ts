@@ -85,6 +85,11 @@ function normalizeNotificationFromEvent(data: Record<string, unknown>): SystemNo
 export function useRealtimeInitialization() {
   useEffect(() => {
     const initializeRealtime = async () => {
+      if (typeof window !== 'undefined' && localStorage.getItem('demo-auth') === 'true') {
+        console.info('Demo session active: skipping realtime initialization');
+        return;
+      }
+
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
         initializeRealtimeClient(baseUrl);

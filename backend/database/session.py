@@ -7,13 +7,23 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 from core.config import settings
 
-# Create engine based on DATABASE_URL; default to SQLite for development
-connect_args = {}
-if str(settings.DATABASE_URL).startswith("sqlite"):
+# Create engine based on DATABASE_URL; default to SQLite for development.
+# In serverless environments like Vercel, prefer /tmp for SQLite file storage.
+database_url = str(settings.DATABASE_URL)
+if database_url.startswith("sqlite:///"):
     connect_args = {"check_same_thread": False}
+    sqlite_path = database_url[len("sqlite:///"):]
+    if (
+        sqlite_path
+        and not Path(sqlite_path).is_absolute()
+        and (os.getenv("VERCEL") or os.getenv("VERCEL_ENV"))
+    ):
+        database_url = "sqlite:////tmp/stadiumos.db"
+else:
+    connect_args = {}
 
 engine = create_engine(
-    str(settings.DATABASE_URL),
+    database_url,
     connect_args=connect_args,
     echo=False,
     future=True,

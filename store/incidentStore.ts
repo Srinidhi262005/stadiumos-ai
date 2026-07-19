@@ -3,7 +3,51 @@ import { devtools } from 'zustand/middleware';
 import { IncidentService } from '@/services/api/incident';
 import { useNotificationStore } from '@/store/notificationStore';
 import { Incident } from '@/types/incidents/incident';
+const isDemoSession = () =>
+  typeof window !== "undefined" &&
+  localStorage.getItem("demo-auth") === "true";
 
+const demoIncidents: Incident[] = [
+  {
+    id: "INC-001",
+    category: "Medical",
+    severity: "high",
+    location: "Gate A",
+    detectionTime: "08:15",
+    assignedTeam: "Medical Team Alpha",
+    status: "in-progress",
+    summary: "Spectator reported chest pain. Medical unit dispatched.",
+    affectedZone: "Gate A",
+    crowdImpact: "Medium",
+    images: [],
+  },
+  {
+    id: "INC-002",
+    category: "Security",
+    severity: "medium",
+    location: "North Stand",
+    detectionTime: "08:22",
+    assignedTeam: "Security Team Bravo",
+    status: "detected",
+    summary: "Unauthorized access attempt detected.",
+    affectedZone: "North Stand",
+    crowdImpact: "Low",
+    images: [],
+  },
+  {
+    id: "INC-003",
+    category: "Crowd",
+    severity: "critical",
+    location: "Food Court",
+    detectionTime: "08:31",
+    assignedTeam: "Crowd Control Unit",
+    status: "escalated",
+    summary: "Crowd density exceeded safe threshold.",
+    affectedZone: "Food Court",
+    crowdImpact: "High",
+    images: [],
+  },
+];
 export interface IncidentState {
   incidents: Incident[];
   selectedIncidentId: string | null;
@@ -130,24 +174,54 @@ export const useIncidentStore = create<IncidentState>()(
           : [...state.filters.status, stat];
         return { filters: { ...state.filters, status: arr } };
       }),
-    loadIncidents: async () => {
-      set({ loading: true, error: null });
-      try {
-        const response = await IncidentService.getIncidents();
-        const normalized = response.map((incident) => normalizeIncident(incident));
-        const selectedIncidentId = normalized[0]?.id ?? null;
-        set({ 
-          incidents: normalized, 
-          selectedIncidentId: get().selectedIncidentId && normalized.some((item) => item.id === get().selectedIncidentId) 
-            ? get().selectedIncidentId 
-            : selectedIncidentId, 
-          loading: false 
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unable to load incidents';
-        set({ error: message, loading: false });
-      }
-    },
+        loadIncidents: async () => {
+  set({ loading: true, error: null });
+
+  try {
+    // Demo Mode
+    if (isDemoSession()) {
+      set({
+        incidents: demoIncidents,
+        selectedIncidentId: demoIncidents[0]?.id ?? null,
+        loading: false,
+        error: null,
+      });
+      return;
+    }
+
+    // Production API
+    const response = await IncidentService.getIncidents();
+
+    const normalized = response.map((incident) =>
+      normalizeIncident(incident)
+    );
+
+    const selectedIncidentId = normalized[0]?.id ?? null;
+
+    set({
+      incidents: normalized,
+      selectedIncidentId:
+        get().selectedIncidentId &&
+        normalized.some(
+          (item) => item.id === get().selectedIncidentId
+        )
+          ? get().selectedIncidentId
+          : selectedIncidentId,
+      loading: false,
+      error: null,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unable to load incidents";
+
+    set({
+      error: message,
+      loading: false,
+    });
+  }
+  },
     refreshIncidents: async () => {
       await get().loadIncidents();
     },

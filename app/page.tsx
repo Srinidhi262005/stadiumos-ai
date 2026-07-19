@@ -11,9 +11,15 @@ export default function RootPage() {
     const t = setTimeout(() => {
       if (isAuthenticated) {
         router.replace('/dashboard');
-      } else {
-        router.replace('/login');
+        return;
       }
+
+      if (typeof window !== 'undefined' && localStorage.getItem('demo-auth') === 'true') {
+        router.replace('/dashboard');
+        return;
+      }
+
+      router.replace('/login');
     }, 120);
     return () => clearTimeout(t);
   }, [isAuthenticated, router]);

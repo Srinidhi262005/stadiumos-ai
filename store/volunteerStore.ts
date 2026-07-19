@@ -3,7 +3,48 @@ import { devtools } from 'zustand/middleware';
 import { VolunteerService, type VolunteerFormValues } from '@/services/api/volunteer';
 import { useNotificationStore } from '@/store/notificationStore';
 import { Volunteer, Assignment, Mission } from '@/types/volunteers/volunteer';
+const isDemoSession = () =>
+  typeof window !== "undefined" &&
+  localStorage.getItem("demo-auth") === "true";
 
+const demoVolunteers: Volunteer[] = [
+  {
+    id: "VOL-001",
+    name: "Rahul Sharma",
+    role: "Crowd Control",
+    languages: ["English", "Hindi"],
+    skills: ["Crowd Control", "Communication"],
+    location: "Gate A",
+    status: "available",
+    email: "rahul@stadium.ai",
+    phone: "9876543210",
+    isActive: true,
+  },
+  {
+    id: "VOL-002",
+    name: "Priya Reddy",
+    role: "Medical Support",
+    languages: ["English", "Telugu"],
+    skills: ["First Aid", "Emergency Response"],
+    location: "East Stand",
+    status: "assigned",
+    email: "priya@stadium.ai",
+    phone: "9876543211",
+    isActive: true,
+  },
+  {
+    id: "VOL-003",
+    name: "Arjun Kumar",
+    role: "Security",
+    languages: ["English", "Hindi"],
+    skills: ["Security", "Patrolling"],
+    location: "VIP",
+    status: "available",
+    email: "arjun@stadium.ai",
+    phone: "9876543212",
+    isActive: true,
+  },
+];
 export interface VolunteerState {
   volunteers: Volunteer[];
   selectedVolunteerId: string | null;
@@ -129,24 +170,50 @@ export const useVolunteerStore = create<VolunteerState>()(
           : [...state.filters.certifications, cert];
         return { filters: { ...state.filters, certifications: arr } };
       }),
-    loadVolunteers: async () => {
-      set({ loading: true, error: null });
-      try {
-        const response = await VolunteerService.getVolunteers();
-        const normalized = response.map(normalizeVolunteer);
-        const selectedVolunteerId = normalized[0]?.id ?? null;
-        set({
-          volunteers: normalized,
-          selectedVolunteerId: get().selectedVolunteerId && normalized.some((item) => item.id === get().selectedVolunteerId)
-            ? get().selectedVolunteerId
-            : selectedVolunteerId,
-          loading: false,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unable to load volunteers';
-        set({ error: message, loading: false });
-      }
-    },
+      loadVolunteers: async () => {
+  set({ loading: true, error: null });
+
+  try {
+    if (isDemoSession()) {
+      set({
+        volunteers: demoVolunteers,
+        selectedVolunteerId: demoVolunteers[0]?.id ?? null,
+        loading: false,
+        error: null,
+      });
+      return;
+    }
+
+    const response = await VolunteerService.getVolunteers();
+
+    const normalized = response.map(normalizeVolunteer);
+
+    const selectedVolunteerId = normalized[0]?.id ?? null;
+
+    set({
+      volunteers: normalized,
+      selectedVolunteerId:
+        get().selectedVolunteerId &&
+        normalized.some(
+          (item) => item.id === get().selectedVolunteerId
+        )
+          ? get().selectedVolunteerId
+          : selectedVolunteerId,
+      loading: false,
+      error: null,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unable to load volunteers";
+
+    set({
+      error: message,
+      loading: false,
+    });
+  }
+},
     retryLoadVolunteers: async () => {
       await get().loadVolunteers();
     },

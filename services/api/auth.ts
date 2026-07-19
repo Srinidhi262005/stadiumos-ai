@@ -5,23 +5,39 @@ import { ApiResponse } from '../../types/api';
 import { useAuthStore } from '../../store/authStore';
 import { setCookie, eraseCookie } from '../../lib/cookies';
 
+const isDemoSession = () =>
+  typeof window !== 'undefined' &&
+  localStorage.getItem('demo-auth') === 'true';
+
+const getDemoUser = (): UserProfile | null => {
+  if (typeof window === 'undefined') return null;
+  const savedUser = localStorage.getItem('stadium_user');
+  if (!savedUser) return null;
+
+  try {
+    return JSON.parse(savedUser) as UserProfile;
+  } catch {
+    return null;
+  }
+};
+
 export const AuthService = {
   login: async (credentials: LoginInput): Promise<ApiResponse<AuthSession>> => {
     // 1. Call login endpoint
     const loginResponse = await apiClient.post<any>('/auth/login', credentials);
     const { access_token, refresh_token } = loginResponse.data;
-    
+
     // Save tokens in cookies for session persistence
     setCookie('stadium_session', access_token, 1); // 1 day
     setCookie('stadium_refresh', refresh_token, 7); // 7 days
-    
+
     // Temporarily save token in Zustand store so subsequent requests are authorized
     useAuthStore.setState({ token: access_token });
-    
+
     // 2. Fetch current user info
     const userResponse = await apiClient.get<any>('/auth/me');
     const dbUser = userResponse.data;
-    
+
     const user: UserProfile = {
       id: dbUser.id,
       email: dbUser.email,
@@ -29,16 +45,16 @@ export const AuthService = {
       role: dbUser.role as UserRole,
       permissions: dbUser.role === 'admin' ? ['admin', 'ops', 'volunteer'] : [dbUser.role]
     };
-    
+
     const session: AuthSession = {
       token: access_token,
       expiresAt: Date.now() + 30 * 60 * 1000,
       user
     };
-    
+
     // Update store state
     useAuthStore.getState().login(session);
-    
+
     return {
       success: true,
       data: session,
@@ -46,9 +62,20 @@ export const AuthService = {
     };
   },
   getCurrentUser: async (): Promise<ApiResponse<UserProfile>> => {
+    if (isDemoSession()) {
+      const demoUser = getDemoUser();
+      if (demoUser) {
+        return {
+          success: true,
+          data: demoUser,
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }
+
     const response = await apiClient.get<any>('/auth/me');
     const dbUser = response.data;
-    
+
     const user: UserProfile = {
       id: dbUser.id,
       email: dbUser.email,
@@ -56,7 +83,7 @@ export const AuthService = {
       role: dbUser.role as UserRole,
       permissions: dbUser.role === 'admin' ? ['admin', 'ops', 'volunteer'] : [dbUser.role]
     };
-    
+
     return {
       success: true,
       data: user,
@@ -71,14 +98,20 @@ export const AuthService = {
     } catch (e) {
       console.warn('Backend logout failed or not supported:', e);
     }
-    
+
+    // Clear demo storage if present
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('demo-auth');
+      localStorage.removeItem('stadium_user');
+    }
+
     // Clear cookies
     eraseCookie('stadium_session');
     eraseCookie('stadium_refresh');
-    
+
     // Clear Zustand store
     useAuthStore.getState().logout();
-    
+
     return {
       success: true,
       data: responseData,

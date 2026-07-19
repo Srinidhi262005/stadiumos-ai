@@ -22,9 +22,11 @@ export default function CrowdPage() {
   const { selectedSector, sectorStatus, sectorMetrics, loading, error, selectSector, setSectorStatus, loadSummary, retryLoadSummary } = useCrowdStore();
   const metrics = selectedSector ? sectorMetrics[selectedSector] : null;
 
-  useEffect(() => {
-    void loadSummary();
-  }, [loadSummary]);
+ useEffect(() => {
+  loadSummary();
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   return (
     <main className="flex flex-col space-y-6">

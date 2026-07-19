@@ -5,6 +5,7 @@ export enum RequestCategory {
   SENIOR = 'senior',
   FAMILY = 'family',
   MEDICAL = 'medical',
+  ESCORT = 'escort',
 }
 
 export enum RequestPriority {

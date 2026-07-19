@@ -71,6 +71,44 @@ const initialResources: AccessibilityResource[] = [
   { id: 'R-REST-01', type: 'restroom', status: 'available', location: 'West Wing' },
   { id: 'R-RAMP-01', type: 'ramp', status: 'available', location: 'Gate A' },
 ];
+const isDemoSession = () =>
+  typeof window !== "undefined" &&
+  localStorage.getItem("demo-auth") === "true";
+
+const demoVolunteerLookup: Record<string, string> = {
+  "VOL-001": "Rahul Sharma",
+  "VOL-002": "Priya Reddy",
+  "VOL-003": "Arjun Kumar",
+};
+
+const demoRequests: AccessibilityRequest[] = [
+  {
+    id: "ACC-001",
+    spectatorName: "Rahul Sharma",
+    category: RequestCategory.WHEELCHAIR,
+    priority: RequestPriority.HIGH,
+    location: "Gate A",
+    assignedVolunteerId: "VOL-001",
+    status: RequestStatus.IN_PROGRESS,
+    need: "Wheelchair assistance",
+    preferredLanguage: "English",
+    destination: "North Stand",
+    estimatedDistance: "120 m",
+  },
+  {
+    id: "ACC-002",
+    spectatorName: "Priya Devi",
+    category: RequestCategory.ESCORT,
+    priority: RequestPriority.MEDIUM,
+    location: "East Gate",
+    assignedVolunteerId: "VOL-002",
+    status: RequestStatus.OPEN,
+    need: "Escort to seating area",
+    preferredLanguage: "Hindi",
+    destination: "Block C",
+    estimatedDistance: "90 m",
+  },
+];
 
 const mapStatus = (value?: string | null): RequestStatus => {
   switch (value) {
@@ -136,27 +174,56 @@ export const useAccessibilityStore = create<AccessibilityState>()(
         return { filters: { ...state.filters, status: arr } };
       }),
     loadRequests: async () => {
-      set({ loading: true, error: null });
-      try {
-        const [requests, volunteers] = await Promise.all([
-          AccessibilityService.getRequests(),
-          AccessibilityService.getVolunteers(),
-        ]);
-        const volunteerLookup = Object.fromEntries(volunteers.map((volunteer) => [volunteer.id, volunteer.name]));
-        const selectedRequestId = requests[0]?.id ?? null;
-        set({
-          requests,
-          volunteerLookup,
-          selectedRequestId: get().selectedRequestId && requests.some((request) => request.id === get().selectedRequestId)
-            ? get().selectedRequestId
-            : selectedRequestId,
-          loading: false,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unable to load accessibility requests';
-        set({ error: message, loading: false });
-      }
-    },
+     set({ loading: true, error: null });
+
+  try {
+
+    if (isDemoSession()) {
+      set({
+        requests: demoRequests,
+        volunteerLookup: demoVolunteerLookup,
+        selectedRequestId: demoRequests[0]?.id ?? null,
+        loading: false,
+        error: null,
+      });
+      return;
+    }
+
+    const [requests, volunteers] = await Promise.all([
+      AccessibilityService.getRequests(),
+      AccessibilityService.getVolunteers(),
+    ]);
+
+    const volunteerLookup = Object.fromEntries(
+      volunteers.map((v) => [v.id, v.name])
+    );
+
+    const selectedRequestId = requests[0]?.id ?? null;
+
+    set({
+      requests,
+      volunteerLookup,
+      selectedRequestId:
+        get().selectedRequestId &&
+        requests.some((r) => r.id === get().selectedRequestId)
+          ? get().selectedRequestId
+          : selectedRequestId,
+      loading: false,
+      error: null,
+    });
+
+  } catch (error) {
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unable to load accessibility requests";
+  set({
+      error: message,
+      loading: false,
+    });
+  }
+},
     retryLoadRequests: async () => {
       await get().loadRequests();
     },

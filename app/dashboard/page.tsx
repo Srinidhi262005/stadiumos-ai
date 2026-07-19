@@ -13,29 +13,28 @@ import { useDashboardStore } from '@/store/dashboardStore';
 export default function DashboardPage() {
   const router = useRouter();
   const addNotification = useNotificationStore((s) => s.addNotification);
-  const { stats, timeline, loading, error, loadDashboardData } = useDashboardStore((state) => ({
-    stats: state.stats,
-    timeline: state.timeline,
-    loading: state.loading,
-    error: state.error,
-    loadDashboardData: state.loadDashboardData,
-  }));
-
-  useEffect(() => {
-    void loadDashboardData();
+  const stats = useDashboardStore((s) => s.stats);
+const timeline = useDashboardStore((s) => s.timeline);
+const loading = useDashboardStore((s) => s.loading);
+const error = useDashboardStore((s) => s.error);
+const loadDashboardData = useDashboardStore((s) => s.loadDashboardData);
+useEffect(() => {
+    loadDashboardData();
 
     const timer = setTimeout(() => {
-      addNotification({
-        title: 'AI Insight: Crowd Surge Predicted',
-        description: 'Gate 4 expected 15% above capacity in 20 min. Recommend rerouting.',
-        category: 'ai',
-        severity: 'warning',
-      });
+        addNotification({
+            title: "AI Insight: Crowd Surge Predicted",
+            description:
+                "Gate 4 expected 15% above capacity in 20 min. Recommend rerouting.",
+            category: "ai",
+            severity: "warning",
+        });
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [addNotification, loadDashboardData]);
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
   const kpis = stats
     ? [
         { title: 'Active Incidents', value: stats.active_incidents, icon: 'AlertTriangle' as const },

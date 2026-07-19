@@ -2,7 +2,39 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import SustainabilityService from '../services/api/sustainability';
 import { SustainabilityMetric, SustainabilityMetricFormValues, SustainabilityMetricType } from '../types/sustainability';
+const isDemoSession = () =>
+  typeof window !== "undefined" &&
+  localStorage.getItem("demo-auth") === "true";
 
+const demoMetrics: SustainabilityMetric[] = [
+  {
+    id: "SUS-001",
+    zoneId: 'main-stadium',
+    metricType: 'energy',
+    value: 68,
+    measuredAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "SUS-002",
+    zoneId: 'north-stand',
+    metricType: 'water',
+    value: 42,
+    measuredAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "SUS-003",
+    zoneId: 'food-court',
+    metricType: 'waste',
+    value: 81,
+    measuredAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
 interface SustainabilityStoreState {
   metrics: SustainabilityMetric[];
   loading: boolean;
@@ -31,14 +63,39 @@ export const useSustainabilityStore = create<SustainabilityStoreState>()(
   selectedMetricType: 'all',
   isRealtimeConnected: false,
   loadMetrics: async () => {
-    set({ loading: true, error: null });
-    try {
-      const metrics = await SustainabilityService.getMetrics();
-      set({ metrics, loading: false });
-    } catch (error) {
-      set({ loading: false, error: error instanceof Error ? error.message : 'Failed to load sustainability metrics.' });
+  set({ loading: true, error: null });
+
+  try {
+
+    if (isDemoSession()) {
+      set({
+        metrics: demoMetrics,
+        loading: false,
+        error: null,
+      });
+      return;
     }
-  },
+
+    const metrics = await SustainabilityService.getMetrics();
+
+    set({
+      metrics,
+      loading: false,
+      error: null,
+    });
+
+  } catch (error) {
+
+    set({
+      loading: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to load sustainability metrics.",
+    });
+
+  }
+},
   createMetric: async (data) => {
     set({ loading: true, error: null });
     try {

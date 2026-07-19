@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from pydantic import BaseSettings, Field, AnyUrl, validator
 
 class Settings(BaseSettings):
@@ -24,13 +26,21 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = Field("", env="SUPABASE_ANON_KEY")
 
     class Config:
-        env_file = "backend/.env"
+        env_file = str(Path(__file__).resolve().parents[1] / ".env")
         env_file_encoding = "utf-8"
 
     @validator("ALLOWED_HOSTS", pre=True)
     def split_allowed_hosts(cls, v):
         if isinstance(v, str):
             return [host.strip() for host in v.split(",")]
+        return v
+
+    @validator("DATABASE_URL", pre=True)
+    def normalize_sqlite_path(cls, v):
+        if isinstance(v, str) and v.startswith("sqlite:///"):
+            if os.getenv("VERCEL") or os.getenv("VERCEL_ENV"):
+                if v in ("sqlite:///./stadiumos.db", "sqlite:///stadiumos.db"):
+                    return "sqlite:////tmp/stadiumos.db"
         return v
 
 # Export a singleton instance for easy import

@@ -31,34 +31,134 @@ export interface CrowdState {
   updateGateRealtime: (data: { gate_name: string; status: 'open' | 'closed' | 'restricted' }) => void;
 }
 
-const defaultSectorStatus = {
-  'North Stand': 'normal' as const,
-  'South Stand': 'normal' as const,
-  'East Stand': 'normal' as const,
-  'West Stand': 'normal' as const,
-  'VIP': 'normal' as const,
-  'Food Court': 'normal' as const,
-  'Medical Center': 'normal' as const,
-  'Parking': 'normal' as const,
-  'Gate A': 'normal' as const,
-  'Gate B': 'normal' as const,
-  'Gate C': 'normal' as const,
-  'Gate D': 'normal' as const,
+const isDemoSession = () =>
+  typeof window !== 'undefined' &&
+  localStorage.getItem('demo-auth') === 'true';
+
+const defaultSectorStatus: Record<string, SectorStatus> = {
+  'North Stand': 'normal',
+  'South Stand': 'normal',
+  'East Stand': 'normal',
+  'West Stand': 'normal',
+  'VIP': 'normal',
+  'Food Court': 'normal',
+  'Medical Center': 'normal',
+  'Parking': 'normal',
+  'Gate A': 'normal',
+  'Gate B': 'normal',
+  'Gate C': 'normal',
+  'Gate D': 'normal',
 };
 
-const defaultMetrics = {
-  'North Stand': { currentDensity: '75%', predictedDensity: '80%', queueLength: '5 mins', entryRate: '200/min', exitRate: '180/min', occupancy: '78%', trend: 'Stable' },
-  'South Stand': { currentDensity: '70%', predictedDensity: '78%', queueLength: '4 mins', entryRate: '180/min', exitRate: '170/min', occupancy: '73%', trend: 'Rising' },
-  'East Stand': { currentDensity: '65%', predictedDensity: '70%', queueLength: '3 mins', entryRate: '150/min', exitRate: '140/min', occupancy: '68%', trend: 'Stable' },
-  'West Stand': { currentDensity: '68%', predictedDensity: '73%', queueLength: '3 mins', entryRate: '160/min', exitRate: '150/min', occupancy: '70%', trend: 'Stable' },
-  'VIP': { currentDensity: '90%', predictedDensity: '92%', queueLength: '2 mins', entryRate: '50/min', exitRate: '48/min', occupancy: '95%', trend: 'Stable' },
-  'Food Court': { currentDensity: '60%', predictedDensity: '65%', queueLength: '6 mins', entryRate: '120/min', exitRate: '110/min', occupancy: '62%', trend: 'Rising' },
-  'Medical Center': { currentDensity: '-', predictedDensity: '-', queueLength: '-', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
-  'Parking': { currentDensity: '-', predictedDensity: '-', queueLength: '8 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
-  'Gate A': { currentDensity: '-', predictedDensity: '-', queueLength: '2 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
-  'Gate B': { currentDensity: '-', predictedDensity: '-', queueLength: '3 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
-  'Gate C': { currentDensity: '-', predictedDensity: '-', queueLength: '4 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
-  'Gate D': { currentDensity: '-', predictedDensity: '-', queueLength: '5 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
+const defaultMetrics: Record<string, SectorMetrics> = {
+  'North Stand': {
+    currentDensity: '75%',
+    predictedDensity: '80%',
+    queueLength: '5 mins',
+    entryRate: '200/min',
+    exitRate: '180/min',
+    occupancy: '78%',
+    trend: 'Stable',
+  },
+  'South Stand': {
+    currentDensity: '70%',
+    predictedDensity: '78%',
+    queueLength: '4 mins',
+    entryRate: '180/min',
+    exitRate: '170/min',
+    occupancy: '73%',
+    trend: 'Rising',
+  },
+  'East Stand': {
+    currentDensity: '65%',
+    predictedDensity: '70%',
+    queueLength: '3 mins',
+    entryRate: '150/min',
+    exitRate: '140/min',
+    occupancy: '68%',
+    trend: 'Stable',
+  },
+  'West Stand': {
+    currentDensity: '68%',
+    predictedDensity: '73%',
+    queueLength: '3 mins',
+    entryRate: '160/min',
+    exitRate: '150/min',
+    occupancy: '70%',
+    trend: 'Stable',
+  },
+  'VIP': {
+    currentDensity: '90%',
+    predictedDensity: '92%',
+    queueLength: '2 mins',
+    entryRate: '50/min',
+    exitRate: '48/min',
+    occupancy: '95%',
+    trend: 'Stable',
+  },
+  'Food Court': {
+    currentDensity: '60%',
+    predictedDensity: '65%',
+    queueLength: '6 mins',
+    entryRate: '120/min',
+    exitRate: '110/min',
+    occupancy: '62%',
+    trend: 'Rising',
+  },
+  'Medical Center': {
+    currentDensity: '-',
+    predictedDensity: '-',
+    queueLength: '-',
+    entryRate: '-',
+    exitRate: '-',
+    occupancy: '-',
+    trend: '-',
+  },
+  Parking: {
+    currentDensity: '-',
+    predictedDensity: '-',
+    queueLength: '8 mins',
+    entryRate: '-',
+    exitRate: '-',
+    occupancy: '-',
+    trend: '-',
+  },
+  'Gate A': {
+    currentDensity: '-',
+    predictedDensity: '-',
+    queueLength: '2 mins',
+    entryRate: '-',
+    exitRate: '-',
+    occupancy: '-',
+    trend: '-',
+  },
+  'Gate B': {
+    currentDensity: '-',
+    predictedDensity: '-',
+    queueLength: '3 mins',
+    entryRate: '-',
+    exitRate: '-',
+    occupancy: '-',
+    trend: '-',
+  },
+  'Gate C': {
+    currentDensity: '-',
+    predictedDensity: '-',
+    queueLength: '4 mins',
+    entryRate: '-',
+    exitRate: '-',
+    occupancy: '-',
+    trend: '-',
+  },
+  'Gate D': {
+    currentDensity: '-',
+    predictedDensity: '-',
+    queueLength: '5 mins',
+    entryRate: '-',
+    exitRate: '-',
+    occupancy: '-',
+    trend: '-',
+  },
 };
 
 export const useCrowdStore = create<CrowdState>()(
@@ -69,39 +169,98 @@ export const useCrowdStore = create<CrowdState>()(
     loading: false,
     error: null,
     isRealtimeConnected: false,
-    selectSector: (sector) => set({ selectedSector: sector, sectorStatus: { ...get().sectorStatus, [sector]: 'selected' } }),
-    setSectorStatus: (sector, status) => set({ sectorStatus: { ...get().sectorStatus, [sector]: status } }),
-    updateSectorMetricsRealtime: (sector, metrics) => set((state) => ({
-      sectorMetrics: {
-        ...state.sectorMetrics,
-        [sector]: { ...state.sectorMetrics[sector], ...metrics }
-      }
-    })),
+
+    selectSector: (sector) =>
+      set({
+        selectedSector: sector,
+        sectorStatus: {
+          ...get().sectorStatus,
+          [sector]: 'selected',
+        },
+      }),
+
+    setSectorStatus: (sector, status) =>
+      set({
+        sectorStatus: {
+          ...get().sectorStatus,
+          [sector]: status,
+        },
+      }),
+
+    updateSectorMetricsRealtime: (sector, metrics) =>
+      set((state) => ({
+        sectorMetrics: {
+          ...state.sectorMetrics,
+          [sector]: {
+            ...state.sectorMetrics[sector],
+            ...metrics,
+          },
+        },
+      })),
+
     loadSummary: async () => {
-      set({ loading: true, error: null });
+      set({
+        loading: true,
+        error: null,
+      });
+
       try {
+        if (isDemoSession()) {
+          set({
+            sectorMetrics: { ...defaultMetrics },
+            sectorStatus: { ...defaultSectorStatus },
+            loading: false,
+          });
+          return;
+        }
+
         const summary = await CrowdService.getCrowdSummary();
-        const sectorMetrics = Object.fromEntries(Object.entries(summary).map(([sector, metrics]) => [sector, {
-          currentDensity: metrics.currentDensity ?? '-',
-          predictedDensity: metrics.predictedDensity ?? '-',
-          queueLength: metrics.queueLength ?? '-',
-          entryRate: metrics.entryRate ?? '-',
-          exitRate: metrics.exitRate ?? '-',
-          occupancy: metrics.occupancy ?? '-',
-          trend: metrics.trend ?? '-',
-        }]));
-        set({ sectorMetrics: { ...defaultMetrics, ...sectorMetrics }, loading: false });
+
+        const sectorMetrics = Object.fromEntries(
+          Object.entries(summary).map(([sector, metrics]: any) => [
+            sector,
+            {
+              currentDensity: metrics.currentDensity ?? '-',
+              predictedDensity: metrics.predictedDensity ?? '-',
+              queueLength: metrics.queueLength ?? '-',
+              entryRate: metrics.entryRate ?? '-',
+              exitRate: metrics.exitRate ?? '-',
+              occupancy: metrics.occupancy ?? '-',
+              trend: metrics.trend ?? '-',
+            },
+          ])
+        );
+
+        set({
+          sectorMetrics: {
+            ...defaultMetrics,
+            ...sectorMetrics,
+          },
+          loading: false,
+        });
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unable to load crowd summary';
-        set({ error: message, loading: false });
+        set({
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Unable to load crowd summary',
+          loading: false,
+        });
       }
     },
+
     retryLoadSummary: async () => {
       await get().loadSummary();
     },
-    setRealtimeConnected: (connected) => set({ isRealtimeConnected: connected }),
+
+    setRealtimeConnected: (connected) =>
+      set({
+        isRealtimeConnected: connected,
+      }),
+
     updateZoneRealtime: (data) => {
       const { zone_name, metric_name, value } = data;
+
       if (!zone_name) return;
 
       let metricKey: keyof SectorMetrics | null = null;
@@ -124,49 +283,46 @@ export const useCrowdStore = create<CrowdState>()(
         formattedValue = `${value}%`;
       }
 
-      if (metricKey) {
-        set((state) => {
-          const currentSectorMetrics = state.sectorMetrics[zone_name] || {
-            currentDensity: '-', predictedDensity: '-', queueLength: '-', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-'
-          };
-          
-          // Dynamically adjust sector status based on density value
-          const statusUpdate: Partial<Record<string, SectorStatus>> = {};
-          if (metric_name === 'density') {
-            const numVal = Number(value);
-            if (numVal >= 90) {
-              statusUpdate[zone_name] = 'critical';
-            } else if (numVal >= 80) {
-              statusUpdate[zone_name] = 'warning';
-            } else {
-              statusUpdate[zone_name] = 'normal';
-            }
-          }
+      if (!metricKey) return;
 
-          return {
-            sectorMetrics: {
-              ...state.sectorMetrics,
-              [zone_name]: {
-                ...currentSectorMetrics,
-                [metricKey!]: formattedValue,
-              }
+      set((state) => {
+        const statusUpdate: Record<string, SectorStatus> = {};
+
+        if (metric_name === 'density') {
+          if (value >= 90) statusUpdate[zone_name] = 'critical';
+          else if (value >= 80) statusUpdate[zone_name] = 'warning';
+          else statusUpdate[zone_name] = 'normal';
+        }
+
+        return {
+          sectorMetrics: {
+            ...state.sectorMetrics,
+            [zone_name]: {
+              ...state.sectorMetrics[zone_name],
+              [metricKey]: formattedValue,
             },
-            sectorStatus: {
-              ...state.sectorStatus,
-              ...statusUpdate,
-            } as Record<string, SectorStatus>
-          };
-        });
-      }
+          },
+          sectorStatus: {
+            ...state.sectorStatus,
+            ...statusUpdate,
+          },
+        };
+      });
     },
+
     updateGateRealtime: (data) => {
       const { gate_name, status } = data;
-      if (!gate_name) return;
+
       set((state) => ({
         sectorStatus: {
           ...state.sectorStatus,
-          [gate_name]: status === 'closed' ? 'critical' : status === 'restricted' ? 'warning' : 'normal',
-        }
+          [gate_name]:
+            status === 'closed'
+              ? 'critical'
+              : status === 'restricted'
+              ? 'warning'
+              : 'normal',
+        },
       }));
     },
   }))

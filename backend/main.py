@@ -10,18 +10,6 @@ from fastapi.middleware.cors import CORSMiddleware
 # deployment root. This prevents `ModuleNotFoundError: No module named 'backend'`.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-# Diagnostic output for runtime import troubleshooting
-try:
-    import os
-    import sys as _sys
-    from pathlib import Path as _P
-    print("DEBUG: __file__=", Path(__file__).resolve())
-    print("DEBUG: cwd=", _P.cwd())
-    print("DEBUG: listdir=", [p.name for p in _P('.').iterdir()])
-    print("DEBUG: sys.path=", _sys.path[:10])
-except Exception as _e:
-    print("DEBUG ERR:", _e)
-
 from core.config import settings
 from core.logging import logger
 from core.websocket import get_connection_manager, get_broadcast_service, EventType
@@ -60,15 +48,18 @@ async def heartbeat_task():
 async def startup_event():
     """Initializes tables, seeds records, and starts background tasks."""
     logger.info("Initializing database tables...")
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
     try:
-        seed_db(db)
-    except Exception as e:
-        logger.error(f"Database seed failed: {e}")
-    finally:
-        db.close()
-    
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        try:
+            seed_db(db)
+        except Exception as e:
+            logger.error("Database seed failed", exc_info=True)
+        finally:
+            db.close()
+    except Exception as exc:
+        logger.error("Database initialization failed", exc_info=True)
+
     # Start WebSocket heartbeat task
     # Starting background heartbeat tasks in serverless environments can
     # cause function invocation issues. Only start in long-running servers.
@@ -102,6 +93,11 @@ async def health_check():
         "service": "backend",
         "environment": settings.ENVIRONMENT,
     }
+
+@app.get(f"{settings.API_V1_STR}/health")
+async def health_check_v1():
+    """API health probe alias under versioned prefix."""
+    return await health_check()
 
 # Register the versioned endpoint router
 app.include_router(api_router, prefix=settings.API_V1_STR)

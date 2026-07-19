@@ -35,9 +35,25 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    
+    const isDemoSession =
+      typeof window !== 'undefined' &&
+      localStorage.getItem('demo-auth') === 'true';
+
     // Check if unauthorized (token expired / invalid) and not already retried
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isDemoSession) {
+        return Promise.reject({
+          message:
+            error.response?.data?.detail ||
+            error.response?.data?.message ||
+            error.message ||
+            'Demo session request failed',
+          status: error.response?.status || 401,
+          code: error.response?.data?.errorCode || 'DEMO_SESSION_ERROR',
+          details: error.response?.data?.details || null,
+        });
+      }
+
       originalRequest._retry = true;
       
       const refreshToken = getCookie('stadium_refresh');
