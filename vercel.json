@@ -7,27 +7,17 @@
     },
     "backend": {
       "root": "backend",
-      "entrypoint": "main:app",
-      "routes": [
-        {
-          "src": "/api/(.*)",
-          "transforms": [
-            {
-              "type": "request.path",
-              "op": "set",
-              "args": "/$1"
-            }
-          ]
-        }
-      ]
+      "entrypoint": "main:app"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "backend"
-      }
+      "src": "/api/(.*)",
+      "service": "backend"
+    },
+    {
+      "src": "/(.*)",
+      "service": "frontend"
     }
   ]
 }
