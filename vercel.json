@@ -1,16 +1,14 @@
 {
-  "services": [
-    {
-      "name": "frontend",
+  "services": {
+    "frontend": {
       "type": "frontend",
       "framework": "nextjs",
       "src": "package.json"
     },
-    {
-      "name": "backend",
+    "backend": {
       "type": "backend",
       "src": "backend",
       "entrypoint": "main:app"
     }
-  ]
+  }
 }
