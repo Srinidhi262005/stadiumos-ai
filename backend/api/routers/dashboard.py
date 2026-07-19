@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 import uuid
 
-from backend.database.session import get_db
-from backend.models.incident import Incident
-from backend.models.volunteer import Volunteer
-from backend.models.accessibility_request import AccessibilityRequest
-from backend.models.match import Match
-from backend.core.permissions import get_current_user
+from database.session import get_db
+from models.incident import Incident
+from models.volunteer import Volunteer
+from models.accessibility_request import AccessibilityRequest
+from models.match import Match
+from core.permissions import get_current_user
 
 router = APIRouter()
 

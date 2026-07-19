@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from backend.database.session import get_db
-from backend.models.report import Report
-from backend.models.audit_log import AuditLog
-from backend.schemas.report import ReportRead, ReportCreate
-from backend.schemas.audit_log import AuditLogRead
-from backend.core.permissions import get_current_user
-from backend.core.events import emit_event_async
-from backend.core.websocket import EventType
+from database.session import get_db
+from models.report import Report
+from models.audit_log import AuditLog
+from schemas.report import ReportRead, ReportCreate
+from schemas.audit_log import AuditLogRead
+from core.permissions import get_current_user
+from core.events import emit_event_async
+from core.websocket import EventType
 
 router = APIRouter()
 

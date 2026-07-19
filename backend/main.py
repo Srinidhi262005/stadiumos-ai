@@ -22,12 +22,12 @@ try:
 except Exception as _e:
     print("DEBUG ERR:", _e)
 
-from backend.core.config import settings
-from backend.core.logging import logger
-from backend.core.websocket import get_connection_manager, get_broadcast_service, EventType
-from backend.api.router import api_router
-from backend.database.session import Base, engine, SessionLocal
-from backend.database.seed import seed_db
+from core.config import settings
+from core.logging import logger
+from core.websocket import get_connection_manager, get_broadcast_service, EventType
+from api.router import api_router
+from database.session import Base, engine, SessionLocal
+from database.seed import seed_db
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from backend.database.session import get_db
-from backend.models.match import Match
-from backend.schemas.match import MatchRead
-from backend.core.permissions import get_current_user
+from database.session import get_db
+from models.match import Match
+from schemas.match import MatchRead
+from core.permissions import get_current_user
 
 router = APIRouter()
 

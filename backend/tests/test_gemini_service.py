@@ -1,6 +1,6 @@
 import unittest
 
-from backend.services.gemini_service import GeminiService
+from services.gemini_service import GeminiService
 
 
 class GeminiServiceTests(unittest.TestCase):

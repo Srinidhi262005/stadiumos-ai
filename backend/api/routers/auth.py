@@ -7,23 +7,23 @@ permission utilities from ``backend.core.permissions``.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.schemas.auth import (
+from schemas.auth import (
     LoginRequest,
     LoginResponse,
     RefreshRequest,
     RefreshResponse,
     CurrentUser,
 )
-from backend.services.auth_service import (
+from services.auth_service import (
     authenticate_user,
     generate_tokens,
     refresh_access_token,
     get_current_user,
 )
-from backend.core.permissions import get_current_user as get_current_user_payload
-from backend.models.user import User
-from backend.models.role import RoleEnum
-from backend.database.session import get_db
+from core.permissions import get_current_user as get_current_user_payload
+from models.user import User
+from models.role import RoleEnum
+from database.session import get_db
 from sqlalchemy.orm import Session
 
 def get_user_from_token(

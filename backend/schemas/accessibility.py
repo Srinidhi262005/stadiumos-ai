@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from pydantic import BaseModel
-from backend.models.accessibility_request import RequestPriority, RequestStatus
+from models.accessibility_request import RequestPriority, RequestStatus
 
 class AccessibilityRequestBase(BaseModel):
     spectator_name: str

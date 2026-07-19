@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 
 from sqlalchemy.orm import Session
 
-from backend.core.websocket import get_broadcast_service, EventType
+from core.websocket import get_broadcast_service, EventType
 
 
 def emit_event_async(
@@ -23,16 +23,16 @@ def emit_event_async(
             service.emit(event_type, data, user_id=user_id, broadcast=True)
         )
     except Exception as e:
-        from backend.core.logging import logger
+        from core.logging import logger
         logger.error(f"Error emitting WebSocket event {event_type.value}: {e}")
 
 
 def get_dashboard_kpi(db: Session) -> Dict[str, Any]:
     """Compute consolidated dashboard KPIs for realtime broadcast."""
-    from backend.models.incident import Incident
-    from backend.models.volunteer import Volunteer
-    from backend.models.accessibility_request import AccessibilityRequest
-    from backend.models.match import Match
+    from models.incident import Incident
+    from models.volunteer import Volunteer
+    from models.accessibility_request import AccessibilityRequest
+    from models.match import Match
 
     active_incidents = db.query(Incident).filter(Incident.status != "resolved").count()
     critical_incidents = db.query(Incident).filter(
@@ -64,5 +64,5 @@ def emit_dashboard_kpi_async(db: Session):
         stats = get_dashboard_kpi(db)
         emit_event_async(EventType.DASHBOARD_KPI, stats)
     except Exception as e:
-        from backend.core.logging import logger
+        from core.logging import logger
         logger.error(f"Error emitting dashboard KPI update: {e}")

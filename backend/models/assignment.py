@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from ..database.session import Base
+from database.session import Base
 
 class Assignment(Base):
     __tablename__ = "assignments"

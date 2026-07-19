@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from pydantic import BaseModel
-from backend.models.sustainability_metric import MetricType
+from models.sustainability_metric import MetricType
 
 class SustainabilityMetricBase(BaseModel):
     zone_id: uuid.UUID

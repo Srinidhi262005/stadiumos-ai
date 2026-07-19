@@ -7,7 +7,7 @@ from enum import Enum
 import uuid
 
 from fastapi import WebSocket, WebSocketDisconnect
-from backend.core.logging import logger
+from core.logging import logger
 
 
 class EventType(Enum):

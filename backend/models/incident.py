@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from ..database.session import Base
+from database.session import Base
 import enum
 
 class IncidentSeverity(str, enum.Enum):

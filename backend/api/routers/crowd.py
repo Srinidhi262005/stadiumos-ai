@@ -5,13 +5,12 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from backend.database.session import get_db
-from backend.models.telemetry import Telemetry
-from backend.models.zone import Zone
-from backend.schemas.telemetry import TelemetryRead, TelemetryCreate
-from backend.core.permissions import get_current_user
-from backend.core.events import emit_event_async, emit_dashboard_kpi_async
-from backend.core.websocket import EventType
+from database.session import get_db
+from models.crowd import CrowdEvent
+from schemas.crowd import CrowdEventRead, CrowdEventCreate
+from core.permissions import get_current_user
+from core.events import emit_event_async
+from core.websocket import EventType
 
 router = APIRouter()
 

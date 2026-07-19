@@ -4,8 +4,8 @@ import uuid
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException, status
 from typing import Optional
 
-from backend.core.logging import logger
-from backend.core.websocket import (
+from core.logging import logger
+from core.websocket import (
     get_connection_manager,
     get_broadcast_service,
     EventType,

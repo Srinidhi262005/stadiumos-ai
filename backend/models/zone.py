@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from ..database.session import Base
+from database.session import Base
 
 class Zone(Base):
     __tablename__ = "zones"

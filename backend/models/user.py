@@ -5,8 +5,8 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from ..database.session import Base
-from .role import Role
+from database.session import Base
+from models.role import Role
 
 class User(Base):
     __tablename__ = "users"

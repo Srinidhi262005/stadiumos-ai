@@ -5,12 +5,12 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from backend.database.session import get_db
-from backend.models.notification import Notification
-from backend.schemas.notification import NotificationRead, NotificationCreate, NotificationUpdate
-from backend.core.permissions import get_current_user
-from backend.core.events import emit_event_async
-from backend.core.websocket import EventType
+from database.session import get_db
+from models.notification import Notification
+from schemas.notification import NotificationRead, NotificationCreate, NotificationUpdate
+from core.permissions import get_current_user
+from core.events import emit_event_async
+from core.websocket import EventType
 
 router = APIRouter()
 

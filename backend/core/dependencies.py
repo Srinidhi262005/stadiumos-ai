@@ -5,7 +5,7 @@ Provides common dependencies like DB session and current user placeholder.
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database.session import get_db
+from database.session import get_db
 
 def get_current_user():
     """Placeholder dependency for authentication.

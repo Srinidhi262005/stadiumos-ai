@@ -10,16 +10,16 @@ backend_dir = Path(__file__).resolve().parents[2]
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
-from backend.database.session import SessionLocal, Base, engine
-from backend.models import (
+from database.session import SessionLocal, Base, engine
+from models import (
     User, Role, Match, Zone, Telemetry, Incident, Volunteer,
     Assignment, AccessibilityRequest, SustainabilityMetric, Notification, AuditLog
 )
-from backend.models.role import RoleEnum
-from backend.models.incident import IncidentSeverity
-from backend.models.accessibility_request import RequestPriority, RequestStatus
-from backend.models.sustainability_metric import MetricType
-from backend.core.security import get_password_hash
+from models.role import RoleEnum
+from models.incident import IncidentSeverity
+from models.accessibility_request import RequestPriority, RequestStatus
+from models.sustainability_metric import MetricType
+from core.security import get_password_hash
 
 def seed_db(db: Session):
     # 1. Seed Roles

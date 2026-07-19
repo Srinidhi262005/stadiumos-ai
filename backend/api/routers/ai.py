@@ -10,7 +10,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Body, Depends
 from typing import Any, Dict
 
-from backend.services.gemini_service import GeminiService, get_gemini_service
+from services.gemini_service import GeminiService, get_gemini_service
 
 router = APIRouter()
 
