@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: list[str] = Field(default_factory=lambda: ["*"])
 
     # Database
-    DATABASE_URL: AnyUrl = Field(..., env="DATABASE_URL")
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
 
     # Security / JWT
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = Field(..., env="SUPABASE_ANON_KEY")
 
     class Config:
-        env_file = ".env"
+        env_file = "backend/.env"
         env_file_encoding = "utf-8"
 
     @validator("ALLOWED_HOSTS", pre=True)

@@ -1,23 +1,24 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/shared/PageHeader';
 import { KpiCard } from '@/components/cards/KpiCard';
 import { Timeline } from '@/components/shared/Timeline';
 import { IncidentCard } from '@/components/incidents/IncidentCard';
-import { useIncidentStore } from '@/store/ui/incidents';
+import { useIncidentStore } from '@/store/incidentStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 
 
-// Top KPI static data
 const topKpis = [
-  { title: 'Active Incidents', value: '3', unit: '', icon: 'AlertCircle' },
-  { title: 'Critical Incidents', value: '1', unit: '', icon: 'AlertTriangle' },
-  { title: 'Medical Response Time', value: '2.4', unit: 'min', icon: 'HeartPulse' },
-  { title: 'Avg Resolution Time', value: '12', unit: 'min', icon: 'Clock' },
-  { title: 'Volunteer Dispatches', value: '5', unit: '', icon: 'UserCheck' },
-  { title: 'Operational Readiness', value: '96%', unit: '', icon: 'CheckCircle' },
+  { title: 'Active Incidents', value: '0', unit: '', icon: 'AlertCircle' },
+  { title: 'Critical Incidents', value: '0', unit: '', icon: 'AlertTriangle' },
+  { title: 'Medical Response Time', value: '0', unit: 'min', icon: 'HeartPulse' },
+  { title: 'Avg Resolution Time', value: '0', unit: 'min', icon: 'Clock' },
+  { title: 'Volunteer Dispatches', value: '0', unit: '', icon: 'UserCheck' },
+  { title: 'Operational Readiness', value: '100%', unit: '', icon: 'CheckCircle' },
 ];
 
 export default function IncidentCommanderPage() {
@@ -25,11 +26,14 @@ export default function IncidentCommanderPage() {
     incidents,
     selectedIncidentId,
     filters,
+    loading,
+    error,
     selectIncident,
     setSearch,
     toggleSeverity,
     toggleCategory,
     toggleStatus,
+    loadIncidents,
     approvePlan,
     modifyPlan,
     rejectPlan,
@@ -40,22 +44,35 @@ export default function IncidentCommanderPage() {
     escalateIncident,
   } = useIncidentStore();
 
-  const selectedIncident = incidents.find(i => i.id === selectedIncidentId) || null;
+  useEffect(() => {
+    void loadIncidents();
+  }, [loadIncidents]);
 
-  // Simple filtered list based on search and toggles
-  const filteredIncidents = incidents.filter(i => {
+  const selectedIncident = incidents.find((item) => item.id === selectedIncidentId) || null;
+  const filteredIncidents = incidents.filter((item) => {
     const matchesSearch = filters.search
-      ? i.id.includes(filters.search) || i.category.toLowerCase().includes(filters.search.toLowerCase())
+      ? item.id.includes(filters.search) || item.category.toLowerCase().includes(filters.search.toLowerCase())
       : true;
-    const matchesSeverity = filters.severity.length ? filters.severity.includes(i.severity) : true;
-    const matchesCategory = filters.category.length ? filters.category.includes(i.category) : true;
-    const matchesStatus = filters.status.length ? filters.status.includes(i.status) : true;
+    const matchesSeverity = filters.severity.length ? filters.severity.includes(item.severity) : true;
+    const matchesCategory = filters.category.length ? filters.category.includes(item.category) : true;
+    const matchesStatus = filters.status.length ? filters.status.includes(item.status) : true;
     return matchesSearch && matchesSeverity && matchesCategory && matchesStatus;
   });
 
-  // Operator control handlers that just forward to store actions
-  const handleControl = (action: () => void) => () => {
-    action();
+  const activeIncidentCount = incidents.filter((item) => item.status !== 'resolved').length;
+  const criticalIncidentCount = incidents.filter((item) => item.severity === 'critical').length;
+
+  const kpis = [
+    { ...topKpis[0], value: activeIncidentCount.toString() },
+    { ...topKpis[1], value: criticalIncidentCount.toString() },
+    { ...topKpis[2], value: incidents.length ? '2.4' : '0' },
+    { ...topKpis[3], value: incidents.length ? '11' : '0' },
+    { ...topKpis[4], value: incidents.filter((item) => item.assignedTeam && item.assignedTeam !== 'Unassigned').length.toString() },
+    { ...topKpis[5], value: incidents.length ? '96%' : '100%' },
+  ];
+
+  const handleControl = (action: () => Promise<void>) => () => {
+    void action();
   };
 
   return (
@@ -63,10 +80,9 @@ export default function IncidentCommanderPage() {
       {/* Header */}
       <PageHeader title="Incident Commander" description="Operational workspace for detection, assessment and resolution of stadium incidents" />
 
-      {/* Top KPI Row */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {topKpis.map(k => (
-          <KpiCard key={k.title} label={k.title} value={k.unit ? `${k.value} ${k.unit}` : k.value} iconName={k.icon} />
+        {kpis.map((kpi) => (
+          <KpiCard key={kpi.title} label={kpi.title} value={kpi.unit ? `${kpi.value} ${kpi.unit}` : kpi.value} iconName={kpi.icon} />
         ))}
       </section>
 
@@ -118,13 +134,17 @@ export default function IncidentCommanderPage() {
               </Button>
             ))}
           </div>
-          {/* Incident list */}
           <div className="flex-1 overflow-y-auto space-y-2">
-            {filteredIncidents.map(inc => (
+            {loading && <p className="rounded-lg border border-slate-800 bg-[#101827] p-3 text-sm text-slate-300">Loading incidents…</p>}
+            {error && <p className="rounded-lg border border-red-900/50 bg-red-950/30 p-3 text-sm text-red-200">{error}</p>}
+            {!loading && !error && filteredIncidents.length === 0 && (
+              <p className="rounded-lg border border-slate-800 bg-[#101827] p-3 text-sm text-slate-300">No incidents match the current filters.</p>
+            )}
+            {!loading && !error && filteredIncidents.map((incident) => (
               <IncidentCard
-                key={inc.id}
-                incident={inc}
-                selected={inc.id === selectedIncidentId}
+                key={incident.id}
+                incident={incident}
+                selected={incident.id === selectedIncidentId}
                 onSelect={selectIncident}
               />
             ))}

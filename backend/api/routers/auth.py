@@ -20,11 +20,24 @@ from backend.services.auth_service import (
     refresh_access_token,
     get_current_user,
 )
-from backend.core.permissions import get_user_from_token
+from backend.core.permissions import get_current_user as get_current_user_payload
 from backend.models.user import User
 from backend.models.role import RoleEnum
 from backend.database.session import get_db
 from sqlalchemy.orm import Session
+
+def get_user_from_token(
+    payload: dict = Depends(get_current_user_payload),
+    db: Session = Depends(get_db)
+) -> User:
+    user = get_current_user(db, payload)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    return user
+
 
 router = APIRouter()
 

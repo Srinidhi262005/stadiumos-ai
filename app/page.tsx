@@ -1,112 +1,37 @@
 'use client';
-import React from "react";
-import PageHeader from "@/components/shared/PageHeader";
-import KpiCard from "@/components/cards/KpiCard";
-import MetricCard from "@/components/cards/MetricCard";
-import Timeline from "@/components/shared/Timeline";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '../store/authStore';
 
-// Static data for the AI Command Center
-const kpis = [
-  { title: "Attendance", value: "78,432", unit: "spectators", icon: "Users" },
-  { title: "Operational Readiness", value: "96%", unit: "", icon: "CheckCircle" },
-  { title: "Risk Score", value: "2.3", unit: "/10", icon: "AlertTriangle" },
-  { title: "Weather", value: "22°C, Clear", icon: "Sun" },
-  { title: "Volunteer Status", value: "124 Active", icon: "UserCheck" },
-  { title: "Medical Status", value: "3 Cases", icon: "HeartPulse" },
-  { title: "Sustainability", value: "Eco‑Score 89%", icon: "Leaf" },
-  { title: "Crowd Status", value: "Normal Flow", icon: "Users" },
-];
+export default function RootPage() {
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-const quickActions = [
-  { label: "Open Incident Report", onClick: () => {} },
-  { label: "Broadcast Message", onClick: () => {} },
-  { label: "Adjust Lighting", onClick: () => {} },
-];
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (isAuthenticated) {
+        router.replace('/dashboard');
+      } else {
+        router.replace('/login');
+      }
+    }, 120);
+    return () => clearTimeout(t);
+  }, [isAuthenticated, router]);
 
-const timelineEvents = [
-  { time: "08:00", description: "Stadium gates opened" },
-  { time: "09:30", description: "Security sweep completed" },
-  { time: "10:15", description: "AI predictive model updated" },
-  { time: "11:45", description: "Volunteer shift change" },
-];
-
-const notifications = [
-  "⚠️  Risk score increased to 2.5",
-  "✅  Weather conditions optimal",
-  "🚑  Medical team responded to minor injury",
-];
-
-export default function AICommandCenterPage() {
   return (
-    <main className="flex min-h-screen flex-col space-y-8 p-8 bg-[#0B1220] text-white">
-      <PageHeader
-        title="AI Command Center"
-        description="Real‑time operational overview for StadiumOS AI"
-      />
-
-      {/* AI Insight Card */}
-      <Card className="bg-[#101827] border-none shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">AI Operational Brief</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm">
-            Predictive capacity at 96%. All critical systems nominal. Expected crowd density peaks at 78 % capacity during halftime.
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <section className="flex space-x-4">
-        {quickActions.map((action, idx) => (
-          <Button key={idx} variant="outline" onClick={action.onClick}>
-            {action.label}
-          </Button>
-        ))}
-      </section>
-
-      {/* KPI Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {kpis.map((kpi) => (
-          <KpiCard
-            key={kpi.title}
-            label={kpi.title}
-            value={kpi.unit ? `${kpi.value} ${kpi.unit}` : kpi.value}
-            iconName={kpi.icon}
-          />
-        ))}
-      </section>
-
-      {/* Operational Timeline */}
-      <section>
-        <MetricCard title="Operational Timeline" value="" />
-        <Timeline events={timelineEvents.map(event => ({ id: `${event.time}-${event.description}`, title: event.description, description: event.description, timestamp: event.time, category: 'system', severity: 'info' }))} />
-      </section>
-
-      {/* Risk Gauge */}
-      <section>
-        <MetricCard title="Risk Score" value="2.3 /10" />
-      </section>
-
-      {/* Recent Notifications */}
-      <section>
-        <MetricCard title="Recent Notifications" value="" />
-        <ul className="list-disc pl-5 space-y-1">
-          {notifications.map((note, i) => (
-            <li key={i}>{note}</li>
-          ))}
-        </ul>
-      </section>
-
-      {/* AI Command Console */}
-      <section className="space-y-2">
-        <MetricCard title="AI Command Console" value="" />
-        <Input placeholder="Enter AI command…" className="bg-[#101827] text-white" />
-        <Button disabled>Execute</Button>
-      </section>
-    </main>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#050B14] via-[#071422] to-[#0E1D2D] px-6">
+      <div className="w-full max-w-xl rounded-2xl border border-slate-800/80 bg-slate-950/70 p-8 shadow-2xl backdrop-blur">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">StadiumOS AI</p>
+        <h1 className="mt-3 text-3xl font-semibold text-white">Preparing your live operations command center…</h1>
+        <p className="mt-3 text-sm text-slate-300">
+          The platform is restoring your session and routing you to the most relevant view for the demo.
+        </p>
+        <div className="mt-6 flex items-center gap-3">
+          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-cyan-400" />
+          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-cyan-400/70" />
+          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-cyan-400/40" />
+        </div>
+      </div>
+    </div>
   );
 }

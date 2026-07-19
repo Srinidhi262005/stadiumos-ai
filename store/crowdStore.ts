@@ -1,31 +1,175 @@
 import { create } from 'zustand';
-import { GateTelemetry, ZoneDensity } from '../types/crowd';
+import { devtools } from 'zustand/middleware';
+import { CrowdService } from '@/services/api/crowd';
 
-interface CrowdStoreState {
-  totalOccupancy: number;
-  maxCapacity: number;
-  gates: GateTelemetry[];
-  zones: ZoneDensity[];
-  selectedGateId: string | null;
-  selectedZoneId: string | null;
-  flowThreshold: number; // people per minute alert threshold
-  setCrowdData: (data: { totalOccupancy: number; maxCapacity: number; gates: GateTelemetry[]; zones: ZoneDensity[] }) => void;
-  setSelectedGateId: (id: string | null) => void;
-  setSelectedZoneId: (id: string | null) => void;
-  setFlowThreshold: (threshold: number) => void;
+export type SectorStatus = 'normal' | 'warning' | 'critical' | 'selected';
+
+export interface SectorMetrics {
+  currentDensity: string;
+  predictedDensity: string;
+  queueLength: string;
+  entryRate: string;
+  exitRate: string;
+  occupancy: string;
+  trend: string;
 }
 
-export const useCrowdStore = create<CrowdStoreState>((set) => ({
-  totalOccupancy: 0,
-  maxCapacity: 80000,
-  gates: [],
-  zones: [],
-  selectedGateId: null,
-  selectedZoneId: null,
-  flowThreshold: 150,
-  setCrowdData: (data) => set(data),
-  setSelectedGateId: (selectedGateId) => set({ selectedGateId }),
-  setSelectedZoneId: (selectedZoneId) => set({ selectedZoneId }),
-  setFlowThreshold: (flowThreshold) => set({ flowThreshold })
-}));
+export interface CrowdState {
+  selectedSector: string | null;
+  sectorStatus: Record<string, SectorStatus>;
+  sectorMetrics: Record<string, SectorMetrics>;
+  loading: boolean;
+  error: string | null;
+  isRealtimeConnected: boolean;
+  selectSector: (sector: string) => void;
+  setSectorStatus: (sector: string, status: SectorStatus) => void;
+  updateSectorMetricsRealtime: (sector: string, metrics: Partial<SectorMetrics>) => void;
+  loadSummary: () => Promise<void>;
+  retryLoadSummary: () => Promise<void>;
+  setRealtimeConnected: (connected: boolean) => void;
+  updateZoneRealtime: (data: { zone_name: string; metric_name: string; value: number }) => void;
+  updateGateRealtime: (data: { gate_name: string; status: 'open' | 'closed' | 'restricted' }) => void;
+}
+
+const defaultSectorStatus = {
+  'North Stand': 'normal' as const,
+  'South Stand': 'normal' as const,
+  'East Stand': 'normal' as const,
+  'West Stand': 'normal' as const,
+  'VIP': 'normal' as const,
+  'Food Court': 'normal' as const,
+  'Medical Center': 'normal' as const,
+  'Parking': 'normal' as const,
+  'Gate A': 'normal' as const,
+  'Gate B': 'normal' as const,
+  'Gate C': 'normal' as const,
+  'Gate D': 'normal' as const,
+};
+
+const defaultMetrics = {
+  'North Stand': { currentDensity: '75%', predictedDensity: '80%', queueLength: '5 mins', entryRate: '200/min', exitRate: '180/min', occupancy: '78%', trend: 'Stable' },
+  'South Stand': { currentDensity: '70%', predictedDensity: '78%', queueLength: '4 mins', entryRate: '180/min', exitRate: '170/min', occupancy: '73%', trend: 'Rising' },
+  'East Stand': { currentDensity: '65%', predictedDensity: '70%', queueLength: '3 mins', entryRate: '150/min', exitRate: '140/min', occupancy: '68%', trend: 'Stable' },
+  'West Stand': { currentDensity: '68%', predictedDensity: '73%', queueLength: '3 mins', entryRate: '160/min', exitRate: '150/min', occupancy: '70%', trend: 'Stable' },
+  'VIP': { currentDensity: '90%', predictedDensity: '92%', queueLength: '2 mins', entryRate: '50/min', exitRate: '48/min', occupancy: '95%', trend: 'Stable' },
+  'Food Court': { currentDensity: '60%', predictedDensity: '65%', queueLength: '6 mins', entryRate: '120/min', exitRate: '110/min', occupancy: '62%', trend: 'Rising' },
+  'Medical Center': { currentDensity: '-', predictedDensity: '-', queueLength: '-', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
+  'Parking': { currentDensity: '-', predictedDensity: '-', queueLength: '8 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
+  'Gate A': { currentDensity: '-', predictedDensity: '-', queueLength: '2 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
+  'Gate B': { currentDensity: '-', predictedDensity: '-', queueLength: '3 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
+  'Gate C': { currentDensity: '-', predictedDensity: '-', queueLength: '4 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
+  'Gate D': { currentDensity: '-', predictedDensity: '-', queueLength: '5 mins', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-' },
+};
+
+export const useCrowdStore = create<CrowdState>()(
+  devtools((set, get) => ({
+    selectedSector: null,
+    sectorStatus: { ...defaultSectorStatus },
+    sectorMetrics: { ...defaultMetrics },
+    loading: false,
+    error: null,
+    isRealtimeConnected: false,
+    selectSector: (sector) => set({ selectedSector: sector, sectorStatus: { ...get().sectorStatus, [sector]: 'selected' } }),
+    setSectorStatus: (sector, status) => set({ sectorStatus: { ...get().sectorStatus, [sector]: status } }),
+    updateSectorMetricsRealtime: (sector, metrics) => set((state) => ({
+      sectorMetrics: {
+        ...state.sectorMetrics,
+        [sector]: { ...state.sectorMetrics[sector], ...metrics }
+      }
+    })),
+    loadSummary: async () => {
+      set({ loading: true, error: null });
+      try {
+        const summary = await CrowdService.getCrowdSummary();
+        const sectorMetrics = Object.fromEntries(Object.entries(summary).map(([sector, metrics]) => [sector, {
+          currentDensity: metrics.currentDensity ?? '-',
+          predictedDensity: metrics.predictedDensity ?? '-',
+          queueLength: metrics.queueLength ?? '-',
+          entryRate: metrics.entryRate ?? '-',
+          exitRate: metrics.exitRate ?? '-',
+          occupancy: metrics.occupancy ?? '-',
+          trend: metrics.trend ?? '-',
+        }]));
+        set({ sectorMetrics: { ...defaultMetrics, ...sectorMetrics }, loading: false });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to load crowd summary';
+        set({ error: message, loading: false });
+      }
+    },
+    retryLoadSummary: async () => {
+      await get().loadSummary();
+    },
+    setRealtimeConnected: (connected) => set({ isRealtimeConnected: connected }),
+    updateZoneRealtime: (data) => {
+      const { zone_name, metric_name, value } = data;
+      if (!zone_name) return;
+
+      let metricKey: keyof SectorMetrics | null = null;
+      let formattedValue = String(value);
+
+      if (metric_name === 'density') {
+        metricKey = 'currentDensity';
+        formattedValue = `${value}%`;
+      } else if (metric_name === 'queue_length') {
+        metricKey = 'queueLength';
+        formattedValue = `${value} mins`;
+      } else if (metric_name === 'entry_rate') {
+        metricKey = 'entryRate';
+        formattedValue = `${value}/min`;
+      } else if (metric_name === 'exit_rate') {
+        metricKey = 'exitRate';
+        formattedValue = `${value}/min`;
+      } else if (metric_name === 'occupancy') {
+        metricKey = 'occupancy';
+        formattedValue = `${value}%`;
+      }
+
+      if (metricKey) {
+        set((state) => {
+          const currentSectorMetrics = state.sectorMetrics[zone_name] || {
+            currentDensity: '-', predictedDensity: '-', queueLength: '-', entryRate: '-', exitRate: '-', occupancy: '-', trend: '-'
+          };
+          
+          // Dynamically adjust sector status based on density value
+          const statusUpdate: Partial<Record<string, SectorStatus>> = {};
+          if (metric_name === 'density') {
+            const numVal = Number(value);
+            if (numVal >= 90) {
+              statusUpdate[zone_name] = 'critical';
+            } else if (numVal >= 80) {
+              statusUpdate[zone_name] = 'warning';
+            } else {
+              statusUpdate[zone_name] = 'normal';
+            }
+          }
+
+          return {
+            sectorMetrics: {
+              ...state.sectorMetrics,
+              [zone_name]: {
+                ...currentSectorMetrics,
+                [metricKey!]: formattedValue,
+              }
+            },
+            sectorStatus: {
+              ...state.sectorStatus,
+              ...statusUpdate,
+            } as Record<string, SectorStatus>
+          };
+        });
+      }
+    },
+    updateGateRealtime: (data) => {
+      const { gate_name, status } = data;
+      if (!gate_name) return;
+      set((state) => ({
+        sectorStatus: {
+          ...state.sectorStatus,
+          [gate_name]: status === 'closed' ? 'critical' : status === 'restricted' ? 'warning' : 'normal',
+        }
+      }));
+    },
+  }))
+);
+
 export default useCrowdStore;

@@ -19,6 +19,5 @@ class User(Base):
 
     # Relationships
     role = relationship("Role", back_populates="users")
-    assignments = relationship("Assignment", back_populates="volunteer")
     notifications = relationship("Notification", back_populates="user")
     audit_logs = relationship("AuditLog", back_populates="user")

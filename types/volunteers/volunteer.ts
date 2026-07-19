@@ -7,6 +7,9 @@ export interface Volunteer {
   location: string;
   status: 'available' | 'assigned' | 'on-break' | 'unavailable';
   certifications?: string[];
+  email?: string;
+  phone?: string;
+  isActive?: boolean;
 }
 
 export interface Assignment {

@@ -33,7 +33,19 @@ import {
   Plus,
   Trash,
   Check,
-  AlertCircle
+  AlertCircle,
+  // Additional icons for pages
+  Sun,
+  HeartPulse,
+  Coffee,
+  Globe,
+  Map,
+  Target,
+  Server,
+  Database,
+  Droplets,
+  List,
+  Wifi,
 } from 'lucide-react';
 
 export const ICONS = {
@@ -71,7 +83,18 @@ export const ICONS = {
   Plus,
   Trash,
   Check,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  HeartPulse,
+  Coffee,
+  Globe,
+  Map,
+  Target,
+  Server,
+  Database,
+  Droplets,
+  List,
+  Wifi,
 } as const;
 
 export type IconName = keyof typeof ICONS;

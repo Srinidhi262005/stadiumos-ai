@@ -7,7 +7,7 @@ import { KpiCard } from '@/components/cards/KpiCard';
 import { MetricCard } from '@/components/cards/MetricCard';
 import { Timeline } from '@/components/shared/Timeline';
 import { StadiumMap } from '@/components/digitalTwin/StadiumMap';
-import { useDigitalTwinStore } from '@/store/ui/digitalTwin';
+import { useDigitalTwinStore } from '@/store/digitalTwinStore';
 
 // Top KPI row data (static)
 const topKpis = [
@@ -15,7 +15,7 @@ const topKpis = [
   { title: 'Attendance', value: '78,432', unit: 'spectators', icon: 'Users' },
   { title: 'Medical Readiness', value: 'Excellent', unit: '', icon: 'HeartPulse' },
   { title: 'Volunteer Coverage', value: '92%', unit: '', icon: 'UserCheck' },
-  { title: 'Accessibility Score', value: '88%', unit: '', icon: 'Wheelchair' },
+  { title: 'Accessibility Score', value: '88%', unit: '', icon: 'Accessibility' },
   { title: 'Operational Readiness', value: '96%', unit: '', icon: 'CheckCircle' },
 ];
 
@@ -33,7 +33,7 @@ export default function DigitalTwinPage() {
 
   const metrics = selectedSector ? sectorMetrics[selectedSector] : null;
 
-  const handleAction = () => {
+  const handleAction = (action?: string) => {
     // mock state change: toggle critical status of selected sector for demo
     if (selectedSector) {
       const current = sectorStatus[selectedSector];
@@ -41,6 +41,7 @@ export default function DigitalTwinPage() {
       setSectorStatus(selectedSector, next);
     }
     // In a real app, would trigger AI analysis etc.
+    console.log(`Executing AI Twin action: ${action}`);
   };
 
   return (

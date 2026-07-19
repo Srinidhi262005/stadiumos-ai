@@ -6,6 +6,7 @@ import { useUiStore } from '../../store/uiStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { useAuthStore } from '../../store/authStore';
 import { formatTimeAgo } from '../../lib/date';
+import { ConnectionStatus } from '../shared/ConnectionStatus';
 
 export function TopNav() {
   const { setSearchOpen, setMobileMenuOpen } = useUiStore();
@@ -64,6 +65,9 @@ export function TopNav() {
             Ctrl+K
           </span>
         </button>
+
+        {/* Real-time Connection Status Indicator */}
+        <ConnectionStatus />
 
         {/* Notifications Dropdown */}
         <div className="relative" ref={notifRef}>

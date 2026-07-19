@@ -1,23 +1,18 @@
-export interface PowerGridStatus {
-  sectorId: string;
-  sectorName: string;
-  consumptionKw: number;
-  peakLoadKw: number;
-  renewableSharePercentage: number;
+export type SustainabilityMetricType = 'energy' | 'water' | 'waste' | 'carbon';
+
+export interface SustainabilityMetric {
+  id: string;
+  zoneId: string;
+  metricType: SustainabilityMetricType;
+  value: number;
+  measuredAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface WasteBinStatus {
-  binId: string;
-  location: string;
-  fillPercentage: number;
-  type: 'general' | 'recycling' | 'compost';
-}
-
-export interface SustainabilityReport {
-  totalCarbonFootprintKg: number;
-  totalEnergyConsumptionKw: number;
-  recyclingRatePercentage: number;
-  waterConsumptionLiters: number;
-  powerGrids: PowerGridStatus[];
-  wasteBins: WasteBinStatus[];
+export interface SustainabilityMetricFormValues {
+  zoneId: string;
+  metricType: SustainabilityMetricType;
+  value: string;
+  measuredAt: string;
 }

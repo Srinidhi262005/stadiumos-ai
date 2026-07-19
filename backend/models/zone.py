@@ -21,3 +21,4 @@ class Zone(Base):
     incidents = relationship("Incident", back_populates="zone")
     accessibility_requests = relationship("AccessibilityRequest", back_populates="zone")
     sustainability_metrics = relationship("SustainabilityMetric", back_populates="zone")
+    assignments = relationship("Assignment", back_populates="zone")

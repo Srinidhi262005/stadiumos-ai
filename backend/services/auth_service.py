@@ -72,7 +72,12 @@ def get_current_user(db: Session, token_payload: dict) -> Optional[User]:
     user_id = token_payload.get("sub")
     if not user_id:
         return None
-    return db.query(User).filter(User.id == user_id).first()
+    import uuid
+    try:
+        user_uuid = uuid.UUID(str(user_id))
+    except ValueError:
+        return None
+    return db.query(User).filter(User.id == user_uuid).first()
 
 # Password utilities are exposed for account creation elsewhere
 hash_password = get_password_hash

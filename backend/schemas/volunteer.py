@@ -16,13 +16,20 @@ class VolunteerBase(BaseModel):
 class VolunteerCreate(VolunteerBase):
     pass
 
+class VolunteerUpdate(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None
+    phone: str | None = None
+    is_active: bool | None = None
+
+
 class VolunteerRead(VolunteerBase):
     id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Alias for imports
 VolunteerSchema = VolunteerRead

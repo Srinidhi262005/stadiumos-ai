@@ -7,3 +7,4 @@ export { default as useIncidentStore } from './incidentStore';
 export { default as useVolunteerStore } from './volunteerStore';
 export { default as useAccessibilityStore } from './accessibilityStore';
 export { default as useSustainabilityStore } from './sustainabilityStore';
+export { default as useDigitalTwinStore } from './digitalTwinStore';

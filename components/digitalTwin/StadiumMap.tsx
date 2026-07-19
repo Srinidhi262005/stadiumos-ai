@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useDigitalTwinStore, SectorStatus } from '@/store/ui/digitalTwin';
+import { useDigitalTwinStore, SectorStatus } from '@/store/digitalTwinStore';
 
 // Simple mapping of sector names to SVG path data (placeholder rectangles)
 const sectorShapes: Record<string, string> = {

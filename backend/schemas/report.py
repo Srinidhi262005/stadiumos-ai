@@ -22,7 +22,7 @@ class ReportRead(ReportBase):
     updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Alias used by __init__ imports
 ReportSchema = ReportRead

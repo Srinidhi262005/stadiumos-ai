@@ -25,6 +25,7 @@ export function VolunteerCard({ volunteer, selected, onSelect }: VolunteerCardPr
       </div>
       <p className="text-xs text-gray-400 mt-1">{volunteer.role}</p>
       <p className="text-xs text-gray-500">{volunteer.location}</p>
+      <p className="text-[11px] mt-1 text-gray-400">{volunteer.isActive === false ? 'Inactive' : 'Active'} • {volunteer.email || 'No email on file'}</p>
     </button>
   );
 }

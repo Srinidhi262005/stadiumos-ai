@@ -1,102 +1,166 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
 import PageHeader from '@/components/shared/PageHeader';
 import { KpiCard } from '@/components/cards/KpiCard';
 import { Timeline } from '@/components/shared/Timeline';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useVolunteerStore } from '@/features/volunteers/store/volunteerStore';
+import { useVolunteerStore } from '@/store/volunteerStore';
 import { VolunteerCard } from '@/components/volunteers/VolunteerCard';
 import { VolunteerStatusBadge } from '@/components/volunteers/VolunteerStatusBadge';
 import { LanguageBadge, SkillBadge } from '@/components/volunteers/LanguageSkillBadges';
+import type { VolunteerFormValues } from '@/services/api/volunteer';
 
+const createDraft = (): VolunteerFormValues => ({
+  name: '',
+  email: '',
+  phone: '',
+  role: 'Volunteer',
+  location: 'North Stand',
+  status: 'available',
+  isActive: true,
+});
 
 export default function VolunteerCommandCenterPage() {
   const {
     volunteers,
     selectedVolunteerId,
-
     missions,
     filters,
+    loading,
+    error,
     selectVolunteer,
     setSearch,
     toggleStatusFilter,
     toggleLanguageFilter,
     toggleSkillFilter,
     toggleCertificationFilter,
+    loadVolunteers,
+    retryLoadVolunteers,
+    createVolunteer,
+    updateVolunteer,
+    deleteVolunteer,
+    assignVolunteer,
+    toggleVolunteerActive,
     assignMission,
-
     completeMission,
   } = useVolunteerStore();
 
-  const selectedVolunteer = volunteers.find(v => v.id === selectedVolunteerId) || null;
+  const [draft, setDraft] = useState<VolunteerFormValues>(createDraft);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const selectedVolunteer = useMemo(() => volunteers.find((volunteer) => volunteer.id === selectedVolunteerId) || null, [volunteers, selectedVolunteerId]);
   const selectedMission = selectedVolunteerId
-    ? missions.find(m => m.assignedVolunteerId === selectedVolunteerId) || null
+    ? missions.find((mission) => mission.assignedVolunteerId === selectedVolunteerId) || null
     : null;
 
-  // KPI calculations
-  const totalVolunteers = volunteers.length;
-  const availableVolunteers = volunteers.filter(v => v.status === 'available').length;
-  const assignedVolunteers = volunteers.filter(v => v.status === 'assigned').length;
-  const onBreakVolunteers = volunteers.filter(v => v.status === 'on-break').length;
-  const averageResponseTime = '2.3 min'; // static placeholder
-  const languagesSupported = Array.from(
-    new Set(volunteers.flatMap(v => v.languages))
-  ).join(', ');
+  useEffect(() => {
+    void loadVolunteers();
+  }, [loadVolunteers]);
 
-  // Filtering logic
-  const filteredVolunteers = volunteers.filter(v => {
+  useEffect(() => {
+    if (selectedVolunteer) {
+      setDraft({
+        name: selectedVolunteer.name,
+        email: selectedVolunteer.email ?? '',
+        phone: selectedVolunteer.phone ?? '',
+        role: selectedVolunteer.role,
+        location: selectedVolunteer.location,
+        status: selectedVolunteer.status,
+        isActive: selectedVolunteer.isActive ?? true,
+      });
+      setFormMode('edit');
+      setFormError(null);
+    } else {
+      setDraft(createDraft());
+      setFormMode('create');
+      setFormError(null);
+    }
+  }, [selectedVolunteer]);
+
+  const totalVolunteers = volunteers.length;
+  const availableVolunteers = volunteers.filter((volunteer) => volunteer.status === 'available').length;
+  const assignedVolunteers = volunteers.filter((volunteer) => volunteer.status === 'assigned').length;
+  const onBreakVolunteers = volunteers.filter((volunteer) => volunteer.status === 'on-break').length;
+  const averageResponseTime = '2.3 min';
+  const languagesSupported = Array.from(new Set(volunteers.flatMap((volunteer) => volunteer.languages))).join(', ');
+
+  const filteredVolunteers = volunteers.filter((volunteer) => {
     const matchesSearch = filters.search
-      ? v.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-        v.role.toLowerCase().includes(filters.search.toLowerCase())
+      ? volunteer.name.toLowerCase().includes(filters.search.toLowerCase()) || volunteer.role.toLowerCase().includes(filters.search.toLowerCase())
       : true;
-    const matchesStatus = filters.status.length ? filters.status.includes(v.status) : true;
-    const matchesLanguage = filters.languages.length
-      ? filters.languages.some(lang => v.languages.includes(lang))
-      : true;
-    const matchesSkill = filters.skills.length
-      ? filters.skills.some(skill => v.skills.includes(skill))
-      : true;
-    const matchesCert = filters.certifications.length
-      ? filters.certifications.every(cert => v.certifications?.includes(cert))
-      : true;
+    const matchesStatus = filters.status.length ? filters.status.includes(volunteer.status) : true;
+    const matchesLanguage = filters.languages.length ? filters.languages.some((language) => volunteer.languages.includes(language)) : true;
+    const matchesSkill = filters.skills.length ? filters.skills.some((skill) => volunteer.skills.includes(skill)) : true;
+    const matchesCert = filters.certifications.length ? filters.certifications.every((cert) => volunteer.certifications?.includes(cert)) : true;
     return matchesSearch && matchesStatus && matchesLanguage && matchesSkill && matchesCert;
   });
 
-  // Operator control handlers (mock, just invoke store actions)
-  const handleAssign = () => {
-    if (selectedVolunteer && missions.length) {
-      // assign first unassigned mission for demo
-      const mission = missions.find(m => !m.assignedVolunteerId);
-      if (mission) assignMission(selectedVolunteer.id, mission.id);
+  const validateDraft = (value: VolunteerFormValues) => {
+    if (!value.name.trim()) return 'Volunteer name is required.';
+    if (!value.email.trim()) return 'Email is required.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim())) return 'Enter a valid email address.';
+    return null;
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const validationError = validateDraft(draft);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+    setFormError(null);
+    if (formMode === 'edit' && selectedVolunteer) {
+      await updateVolunteer(selectedVolunteer.id, draft);
+    } else {
+      await createVolunteer(draft);
     }
   };
-  const handleReassign = () => {
-    // For demo, just log
-    console.log('Reassign clicked');
+
+  const handleNewVolunteer = () => {
+    setDraft(createDraft());
+    setFormMode('create');
+    setFormError(null);
+    selectVolunteer('');
   };
-  const handleNotify = () => {
-    console.log('Notify volunteer');
+
+  const handleAssign = async () => {
+    if (selectedVolunteer) {
+      await assignVolunteer(selectedVolunteer.id);
+    }
   };
-  const handleBackup = () => {
-    console.log('Request backup');
+
+  const handleToggleActive = async () => {
+    if (selectedVolunteer) {
+      await toggleVolunteerActive(selectedVolunteer.id);
+    }
   };
+
   const handleComplete = () => {
     if (selectedMission) completeMission(selectedMission.id);
   };
-  const handleCancel = () => {
-    console.log('Cancel assignment');
+
+  const handleAssignMission = () => {
+    if (selectedVolunteer && missions.length) {
+      const mission = missions.find((item) => !item.assignedVolunteerId);
+      if (mission) assignMission(selectedVolunteer.id, mission.id);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedVolunteer) {
+      await deleteVolunteer(selectedVolunteer.id);
+    }
   };
 
   return (
     <main className="flex min-h-screen flex-col bg-[#0B1220] text-white p-6 space-y-6">
-      {/* Header */}
-      <PageHeader
-        title="Volunteer Command Center"
-        description="Manage, assign and monitor stadium volunteers in real time"
-      />
+      <PageHeader title="Volunteer Command Center" description="Manage, assign and monitor stadium volunteers in real time" />
 
-      {/* Top KPI Row */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <KpiCard label="Total Volunteers" value={String(totalVolunteers)} iconName="Users" />
         <KpiCard label="Available" value={String(availableVolunteers)} iconName="CheckCircle" />
@@ -106,132 +170,121 @@ export default function VolunteerCommandCenterPage() {
         <KpiCard label="Languages Supported" value={languagesSupported} iconName="Globe" />
       </section>
 
-      {/* Main layout */}
       <section className="flex flex-col lg:flex-row gap-4 flex-1">
-        {/* LEFT PANEL: Directory */}
         <div className="lg:w-1/3 flex flex-col space-y-4">
-          <Input
-            placeholder="Search volunteers…"
-            value={filters.search}
-            onChange={e => setSearch(e.target.value)}
-            className="bg-[#101827] text-white"
-          />
+          <div className="flex items-center justify-between gap-2">
+            <Input
+              placeholder="Search volunteers…"
+              value={filters.search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="bg-[#101827] text-white"
+            />
+            <Button onClick={handleNewVolunteer} variant="outline" size="sm">New</Button>
+          </div>
           <div className="flex flex-wrap gap-2">
-            {/* Status filters */}
-            {(['available', 'assigned', 'on-break', 'unavailable'] as const).map(st => (
-              <Button
-                key={st}
-                variant={filters.status.includes(st) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => toggleStatusFilter(st)}
-              >
-                {st.replace('-', ' ')}
+            {(['available', 'assigned', 'on-break', 'unavailable'] as const).map((status) => (
+              <Button key={status} variant={filters.status.includes(status) ? 'default' : 'outline'} size="sm" onClick={() => toggleStatusFilter(status)}>
+                {status.replace('-', ' ')}
               </Button>
             ))}
-            {/* Languages */}
-            {Array.from(new Set(volunteers.flatMap(v => v.languages))).map(lang => (
-              <Button
-                key={lang}
-                variant={filters.languages.includes(lang) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => toggleLanguageFilter(lang)}
-              >
-                {lang}
+            {Array.from(new Set(volunteers.flatMap((volunteer) => volunteer.languages))).map((language) => (
+              <Button key={language} variant={filters.languages.includes(language) ? 'default' : 'outline'} size="sm" onClick={() => toggleLanguageFilter(language)}>
+                {language}
               </Button>
             ))}
-            {/* Skills */}
-            {Array.from(new Set(volunteers.flatMap(v => v.skills))).map(skill => (
-              <Button
-                key={skill}
-                variant={filters.skills.includes(skill) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => toggleSkillFilter(skill)}
-              >
+            {Array.from(new Set(volunteers.flatMap((volunteer) => volunteer.skills))).map((skill) => (
+              <Button key={skill} variant={filters.skills.includes(skill) ? 'default' : 'outline'} size="sm" onClick={() => toggleSkillFilter(skill)}>
                 {skill}
               </Button>
             ))}
-            {/* Certifications */}
-            {Array.from(new Set(volunteers.flatMap(v => v.certifications ?? []))).map(cert => (
-              <Button
-                key={cert}
-                variant={filters.certifications.includes(cert) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => toggleCertificationFilter(cert)}
-              >
-                {cert}
+            {Array.from(new Set(volunteers.flatMap((volunteer) => volunteer.certifications ?? []))).map((certification) => (
+              <Button key={certification} variant={filters.certifications.includes(certification) ? 'default' : 'outline'} size="sm" onClick={() => toggleCertificationFilter(certification)}>
+                {certification}
               </Button>
             ))}
           </div>
           <div className="flex-1 overflow-y-auto space-y-2">
-            {filteredVolunteers.map(v => (
-              <VolunteerCard
-                key={v.id}
-                volunteer={v}
-                selected={v.id === selectedVolunteerId}
-                onSelect={selectVolunteer}
-              />
+            {loading && volunteers.length === 0 ? (
+              <div className="rounded-lg border border-gray-700 bg-[#101827] p-4 text-sm text-gray-400">Loading volunteers…</div>
+            ) : null}
+            {error && volunteers.length === 0 ? (
+              <div className="rounded-lg border border-red-700 bg-red-950/40 p-4 text-sm text-red-200">
+                <p>{error}</p>
+                <Button className="mt-3" variant="outline" size="sm" onClick={() => void retryLoadVolunteers()}>Retry</Button>
+              </div>
+            ) : null}
+            {!loading && !error && filteredVolunteers.length === 0 ? (
+              <div className="rounded-lg border border-gray-700 bg-[#101827] p-4 text-sm text-gray-400">No volunteers match the current filters.</div>
+            ) : null}
+            {filteredVolunteers.map((volunteer) => (
+              <VolunteerCard key={volunteer.id} volunteer={volunteer} selected={volunteer.id === selectedVolunteerId} onSelect={selectVolunteer} />
             ))}
           </div>
         </div>
 
-        {/* CENTER PANEL */}
         <div className="lg:w-1/3 flex flex-col space-y-4">
-          {/* Volunteer Profile */}
           <Card className="bg-[#101827] border-none flex-1">
             <CardHeader>
-              <CardTitle>{selectedVolunteer ? selectedVolunteer.name : 'Select a volunteer'}</CardTitle>
+              <CardTitle>{selectedVolunteer ? selectedVolunteer.name : 'Volunteer profile'}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-3 text-sm">
               {selectedVolunteer ? (
                 <>
                   <p><strong>Role:</strong> {selectedVolunteer.role}</p>
                   <p><strong>Location:</strong> {selectedVolunteer.location}</p>
                   <p><strong>Status:</strong> <VolunteerStatusBadge status={selectedVolunteer.status} /></p>
-                  <p><strong>Languages:</strong> {selectedVolunteer.languages.map(l => <LanguageBadge key={l} language={l} />)}</p>
-                  <p><strong>Skills:</strong> {selectedVolunteer.skills.map(s => <SkillBadge key={s} skill={s} />)}</p>
-                  {selectedVolunteer.certifications && selectedVolunteer.certifications.length > 0 && (
-                    <p><strong>Certifications:</strong> {selectedVolunteer.certifications.join(', ')}</p>
-                  )}
+                  <p><strong>Contact:</strong> {selectedVolunteer.email || 'No email on file'}</p>
+                  <p><strong>Phone:</strong> {selectedVolunteer.phone || 'No phone on file'}</p>
+                  <p><strong>Languages:</strong> {selectedVolunteer.languages.length ? selectedVolunteer.languages.join(', ') : 'None listed'}</p>
+                  <p><strong>Skills:</strong> {selectedVolunteer.skills.length ? selectedVolunteer.skills.join(', ') : 'None listed'}</p>
                 </>
               ) : (
-                <p className="text-gray-400">Click a volunteer on the left to view details.</p>
+                <p className="text-gray-400">Select a volunteer to view details and manage availability.</p>
               )}
             </CardContent>
           </Card>
 
-          {/* AI Assignment Recommendation */}
           <Card className="bg-[#101827] border-none flex-1">
             <CardHeader>
-              <CardTitle>AI Assignment Recommendation</CardTitle>
+              <CardTitle>{formMode === 'edit' ? 'Edit volunteer' : 'Create volunteer'}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {selectedVolunteer ? (
-                <>
-                  <p><strong>Recommended Mission:</strong> {selectedMission ? selectedMission.title : 'Assist Gate A Crowd'}</p>
-                  <p><strong>Reason:</strong> Proximity and skill match.</p>
-                  <p><strong>Distance:</strong> 150 m</p>
-                  <p><strong>Skill Match:</strong> 92%</p>
-                  <p><strong>Confidence Score:</strong> 94%</p>
-                  <p><strong>Est. Arrival:</strong> 3 min</p>
-                </>
-              ) : (
-                <p className="text-gray-400">Select a volunteer to see AI recommendation.</p>
-              )}
+            <CardContent>
+              <form className="space-y-3" onSubmit={handleSubmit}>
+                {formError ? <p className="text-sm text-red-300">{formError}</p> : null}
+                <Input placeholder="Name" value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} />
+                <Input placeholder="Email" value={draft.email} onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} />
+                <Input placeholder="Phone" value={draft.phone} onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} />
+                <Input placeholder="Role" value={draft.role} onChange={(event) => setDraft((current) => ({ ...current, role: event.target.value }))} />
+                <Input placeholder="Location" value={draft.location} onChange={(event) => setDraft((current) => ({ ...current, location: event.target.value }))} />
+                <div className="flex gap-2">
+                  <select className="w-full rounded-md border border-gray-700 bg-[#0B1220] px-3 py-2 text-sm text-white" value={draft.status} onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as VolunteerFormValues['status'] }))}>
+                    <option value="available">Available</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="on-break">On break</option>
+                    <option value="unavailable">Unavailable</option>
+                  </select>
+                  <label className="flex items-center gap-2 rounded-md border border-gray-700 bg-[#0B1220] px-3 py-2 text-sm text-gray-300">
+                    <input type="checkbox" checked={draft.isActive} onChange={(event) => setDraft((current) => ({ ...current, isActive: event.target.checked }))} />
+                    Active
+                  </label>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit">{formMode === 'edit' ? 'Save changes' : 'Create volunteer'}</Button>
+                  {selectedVolunteer ? <Button type="button" variant="outline" onClick={() => void handleDelete()}>Delete</Button> : null}
+                </div>
+              </form>
             </CardContent>
           </Card>
 
-          {/* Operator Controls */}
           <div className="flex flex-wrap gap-2 justify-center">
-            <Button onClick={handleAssign} disabled={!selectedVolunteer}>Assign Mission</Button>
-            <Button onClick={handleReassign} disabled={!selectedVolunteer}>Reassign</Button>
-            <Button onClick={handleNotify} disabled={!selectedVolunteer}>Notify Volunteer</Button>
-            <Button onClick={handleBackup} disabled={!selectedVolunteer}>Request Backup</Button>
-            <Button onClick={handleComplete} disabled={!selectedMission}>Complete Mission</Button>
-            <Button onClick={handleCancel} disabled={!selectedVolunteer}>Cancel Assignment</Button>
+            <Button onClick={() => void handleAssign()} disabled={!selectedVolunteer}>Assign volunteer</Button>
+            <Button onClick={() => void handleToggleActive()} disabled={!selectedVolunteer}>Toggle active</Button>
+            <Button onClick={handleAssignMission} disabled={!selectedVolunteer}>Assign mission</Button>
+            <Button onClick={handleComplete} disabled={!selectedMission}>Complete mission</Button>
+            <Button onClick={() => void retryLoadVolunteers()} variant="outline">Retry</Button>
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
         <div className="lg:w-1/3 flex flex-col space-y-4">
           <Card className="bg-[#101827] border-none flex-1">
             <CardHeader>
@@ -245,8 +298,8 @@ export default function VolunteerCommandCenterPage() {
                   <p><strong>ETA:</strong> {selectedMission.eta}</p>
                   <p><strong>Checklist:</strong></p>
                   <ul className="list-disc list-inside ml-4">
-                    {selectedMission.checklist.map((c, i) => (
-                      <li key={i}>{c}</li>
+                    {selectedMission.checklist.map((item, index) => (
+                      <li key={`${item}-${index}`}>{item}</li>
                     ))}
                   </ul>
                 </>
@@ -258,23 +311,16 @@ export default function VolunteerCommandCenterPage() {
         </div>
       </section>
 
-      {/* Bottom Timeline */}
       <section className="mt-6">
         <Card className="bg-[#101827] border-none">
           <CardHeader>
             <CardTitle>Volunteer Timeline</CardTitle>
           </CardHeader>
           <CardContent>
-            <Timeline
-              events={[
-                { id: 'vt-1', title: 'Assignment Accepted', description: 'Volunteer accepted the mission',  timestamp: '08:00', category: 'volunteer', severity: 'info'    },
-                { id: 'vt-2', title: 'Travelling',          description: 'Volunteer en route',              timestamp: '08:10', category: 'volunteer', severity: 'info'    },
-                { id: 'vt-3', title: 'Arrived',             description: 'Volunteer arrived at location',   timestamp: '08:25', category: 'volunteer', severity: 'primary' },
-                { id: 'vt-4', title: 'Task Started',        description: 'Volunteer began the task',        timestamp: '08:30', category: 'volunteer', severity: 'warning' },
-                { id: 'vt-5', title: 'Task Completed',      description: 'Task successfully completed',     timestamp: '09:00', category: 'volunteer', severity: 'success' },
-                { id: 'vt-6', title: 'Available Again',     description: 'Volunteer returned to standby',   timestamp: '09:10', category: 'volunteer', severity: 'success' },
-              ]}
-            />
+            <Timeline events={[
+              { id: 'vt-1', title: 'Roster synced', description: 'Latest volunteer data loaded from the API', timestamp: 'Now', category: 'volunteer', severity: 'info' },
+              { id: 'vt-2', title: 'Assignment updated', description: 'Volunteer status changed for the current shift', timestamp: 'Now', category: 'volunteer', severity: 'primary' },
+            ]} />
           </CardContent>
         </Card>
       </section>

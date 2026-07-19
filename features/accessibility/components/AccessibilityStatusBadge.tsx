@@ -8,9 +8,9 @@ interface AccessibilityStatusBadgeProps {
 
 export const AccessibilityStatusBadge: React.FC<AccessibilityStatusBadgeProps> = ({ status }) => {
   const colorMap: Record<AccessibilityRequest['status'], string> = {
-    open: 'bg-green-600',
-    'in-progress': 'bg-blue-600',
-    completed: 'bg-gray-600',
+    open: 'bg-blue-600',
+    'in-progress': 'bg-amber-600',
+    completed: 'bg-emerald-600',
     escalated: 'bg-red-600',
   };
   const labelMap: Record<AccessibilityRequest['status'], string> = {
@@ -20,6 +20,6 @@ export const AccessibilityStatusBadge: React.FC<AccessibilityStatusBadgeProps> =
     escalated: 'Escalated',
   };
   return (
-    <Badge variant="secondary" className={`${colorMap[status]} capitalize`}> {labelMap[status]} </Badge>
+    <Badge variant="secondary" className={`${colorMap[status]} capitalize`}>{labelMap[status]}</Badge>
   );
 };

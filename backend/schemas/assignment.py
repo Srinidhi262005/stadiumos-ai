@@ -17,6 +17,14 @@ class AssignmentBase(BaseModel):
 class AssignmentCreate(AssignmentBase):
     pass
 
+class AssignmentUpdate(BaseModel):
+    volunteer_id: uuid.UUID | None = None
+    incident_id: uuid.UUID | None = None
+    match_id: uuid.UUID | None = None
+    zone_id: uuid.UUID | None = None
+    role: str | None = None
+    completed_at: datetime | None = None
+
 class AssignmentSchema(AssignmentBase):
     id: uuid.UUID
     assigned_at: datetime
@@ -25,4 +33,7 @@ class AssignmentSchema(AssignmentBase):
     updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+
+# Alias for compatibility with router imports
+AssignmentRead = AssignmentSchema

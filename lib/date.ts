@@ -11,7 +11,15 @@ export function formatDateTime(dateString: string | Date): string {
 }
 
 export function formatTimeAgo(dateString: string | Date): string {
+  if (typeof dateString === 'string' && /^\d{1,2}:\d{2}$/.test(dateString)) {
+    return dateString;
+  }
+
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  if (Number.isNaN(date.getTime())) {
+    return 'Unknown';
+  }
+
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
   
   if (seconds < 5) return 'Just now';

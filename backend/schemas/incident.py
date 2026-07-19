@@ -12,9 +12,23 @@ class IncidentBase(BaseModel):
     zone_id: uuid.UUID | None = None
     description: str
     severity: str
+    category: str = "Security"
+    status: str = "detected"
+    crowd_impact: str | None = "Low"
+    assigned_team: str | None = None
 
 class IncidentCreate(IncidentBase):
     pass
+
+class IncidentUpdate(BaseModel):
+    match_id: uuid.UUID | None = None
+    zone_id: uuid.UUID | None = None
+    description: str | None = None
+    severity: str | None = None
+    category: str | None = None
+    status: str | None = None
+    crowd_impact: str | None = None
+    assigned_team: str | None = None
 
 class IncidentRead(IncidentBase):
     id: uuid.UUID
@@ -23,7 +37,7 @@ class IncidentRead(IncidentBase):
     updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Alias for consistency with __init__ imports
 IncidentSchema = IncidentRead
