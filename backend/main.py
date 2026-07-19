@@ -52,8 +52,9 @@ async def startup_event():
         db.close()
     
     # Start WebSocket heartbeat task
-    logger.info("Starting WebSocket heartbeat task...")
-    asyncio.create_task(heartbeat_task())
+    # Starting background heartbeat tasks in serverless environments can
+    # cause function invocation issues. Only start in long-running servers.
+    logger.info("Skipping heartbeat background task in serverless deployment")
     logger.info("Application startup complete")
 
 @app.on_event("shutdown")
